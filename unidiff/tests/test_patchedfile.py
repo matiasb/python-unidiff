@@ -6,7 +6,7 @@
 import os.path
 import unittest2
 
-from nlg4patch.unidiff.patch import PatchedFile, Hunk
+from unidiff.patch import PatchedFile, Hunk
 
 
 class TestPatchedFile(unittest2.TestCase):

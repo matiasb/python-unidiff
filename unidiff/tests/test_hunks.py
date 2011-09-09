@@ -7,7 +7,7 @@
 import os.path
 import unittest2
 
-from nlg4patch.unidiff.patch import Hunk
+from unidiff.patch import Hunk
 
 
 class TestHunk(unittest2.TestCase):
