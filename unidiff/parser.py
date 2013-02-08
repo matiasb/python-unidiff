@@ -4,9 +4,8 @@
 
 """Unified diff parser module."""
 
-import re
-
-from patch import PatchSet, PatchedFile, Hunk
+from patch import (PatchSet, PatchedFile, Hunk, LINE_TYPE_ADD,
+                   LINE_TYPE_DELETE, LINE_TYPE_CONTEXT)
 from utils import (RE_SOURCE_FILENAME, RE_TARGET_FILENAME,
                    RE_HUNK_HEADER, RE_HUNK_BODY_LINE)
 
@@ -24,16 +23,16 @@ def _parse_hunk(diff, source_start, source_len, target_start, target_len):
         if valid_line:
             action = valid_line.group(0)
             original_line = line[1:]
-            if action == '+':
+            if action == LINE_TYPE_ADD:
                 hunk.append_added_line(original_line)
                 # modified lines == deleted immediately followed by added
                 if deleting > 0:
                     modified += 1
                     deleting -= 1
-            elif action == '-':
+            elif action == LINE_TYPE_DELETE:
                 hunk.append_deleted_line(original_line)
                 deleting += 1
-            elif action == ' ':
+            elif action == LINE_TYPE_CONTEXT:
                 hunk.append_context_line(original_line)
                 hunk.add_to_modified_counter(modified)
                 # reset modified auxiliar variables

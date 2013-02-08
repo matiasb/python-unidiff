@@ -4,12 +4,14 @@
 """Classes used by the unified diff parser to keep the diff data."""
 
 import difflib
-import re
 
-from utils import RE_HUNK_HEADER
+LINE_TYPE_ADD = '+'
+LINE_TYPE_DELETE= '-'
+LINE_TYPE_CONTEXT = ' '
 
 class Hunk(object):
     """Each of the modified blocks of a file."""
+
 
     def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0):
         self.source_start = int(src_start)
@@ -18,6 +20,8 @@ class Hunk(object):
         self.target_length = int(tgt_len)
         self.source_lines = []
         self.target_lines = []
+        self.source_types = []
+        self.target_types = []
         self.modified = 0
         self.added = 0
         self.deleted = 0
@@ -44,22 +48,26 @@ class Hunk(object):
 
     def is_valid(self):
         """Check hunk header data matches entered lines info."""
-        return (len(self.source_lines) == self.source_length and 
+        return (len(self.source_lines) == self.source_length and
                 len(self.target_lines) == self.target_length)
 
     def append_context_line(self, line):
         """Add a new context line to the hunk."""
         self.source_lines.append(line)
         self.target_lines.append(line)
+        self.source_types.append(LINE_TYPE_CONTEXT)
+        self.target_types.append(LINE_TYPE_CONTEXT)
 
     def append_added_line(self, line):
         """Add a new added line to the hunk."""
         self.target_lines.append(line)
+        self.target_types.append(LINE_TYPE_ADD)
         self.added += 1
 
     def append_deleted_line(self, line):
         """Add a new deleted line to the hunk."""
         self.source_lines.append(line)
+        self.source_types.append(LINE_TYPE_DELETE)
         self.deleted += 1
 
     def add_to_modified_counter(self, mods):
