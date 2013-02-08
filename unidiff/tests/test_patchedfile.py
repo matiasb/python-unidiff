@@ -3,7 +3,6 @@
 
 """Tests for PatchedFile."""
 
-import os.path
 import unittest2
 
 from unidiff.patch import PatchedFile, Hunk
