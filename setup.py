@@ -12,6 +12,6 @@ setup(name='unidiff',
       author='Matias Bordese',
       author_email='mbordese@gmail.com',
       url='http://github.com/matiasb/python-unidiff',
-      license='GPL-3',
+      license='MIT',
       packages=find_packages(),
      )
