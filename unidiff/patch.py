@@ -27,12 +27,11 @@
 import difflib
 
 LINE_TYPE_ADD = '+'
-LINE_TYPE_DELETE= '-'
+LINE_TYPE_DELETE = '-'
 LINE_TYPE_CONTEXT = ' '
 
 class Hunk(object):
     """Each of the modified blocks of a file."""
-
 
     def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0):
         self.source_start = int(src_start)
@@ -102,6 +101,7 @@ class PatchedFile(list):
     """Data from a patched file."""
 
     def __init__(self, source='', target=''):
+        super(PatchedFile, self).__init__()
         self.source_file = source
         self.target_file = target
 
@@ -124,12 +124,16 @@ class PatchedFile(list):
 
     @property
     def path(self):
-        #TODO: improve git/hg detection
-        if self.source_file.startswith('a/') and self.target_file.startswith('b/'):
+        """Return the file path abstracted from VCS."""
+        # TODO: improve git/hg detection
+        if (self.source_file.startswith('a/') and
+                self.target_file.startswith('b/')):
             filepath = self.source_file[2:]
-        elif self.source_file.startswith('a/') and self.target_file == '/dev/null':
+        elif (self.source_file.startswith('a/') and
+                self.target_file == '/dev/null'):
             filepath = self.source_file[2:]
-        elif self.target_file.startswith('b/') and self.source_file == '/dev/null':
+        elif (self.target_file.startswith('b/') and
+                self.source_file == '/dev/null'):
             filepath = self.target_file[2:]
         else:
             filepath = self.source_file

@@ -34,6 +34,7 @@ class TestUnidiffParser(unittest.TestCase):
     """Tests for Unified Diff Parser."""
 
     def setUp(self):
+        super(TestUnidiffParser, self).setUp()
         samples_dir = os.path.dirname(os.path.realpath(__file__))
         self.sample_file = os.path.join(samples_dir, 'sample.diff')
         self.sample_bad_file = os.path.join(samples_dir, 'sample_bad.diff')

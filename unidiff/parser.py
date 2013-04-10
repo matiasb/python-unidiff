@@ -24,17 +24,29 @@
 
 """Unified diff parser module."""
 
-from patch import (PatchSet, PatchedFile, Hunk, LINE_TYPE_ADD,
-                   LINE_TYPE_DELETE, LINE_TYPE_CONTEXT)
-from utils import (RE_SOURCE_FILENAME, RE_TARGET_FILENAME,
-                   RE_HUNK_HEADER, RE_HUNK_BODY_LINE)
+from unidiff.patch import (
+    LINE_TYPE_ADD,
+    LINE_TYPE_DELETE,
+    LINE_TYPE_CONTEXT,
+    Hunk,
+    PatchedFile,
+    PatchSet
+)
+from unidiff.utils import (
+    RE_HUNK_BODY_LINE,
+    RE_HUNK_HEADER,
+    RE_SOURCE_FILENAME,
+    RE_TARGET_FILENAME,
+)
 
 
 class UnidiffParseException(Exception):
+    """Exception when parsing the diff data."""
     pass
 
 
 def _parse_hunk(diff, source_start, source_len, target_start, target_len):
+    """Parse a diff hunk details."""
     hunk = Hunk(source_start, source_len, target_start, target_len)
     modified = 0
     deleting = 0
@@ -96,4 +108,3 @@ def parse_unidiff(diff):
             hunk = _parse_hunk(diff, *hunk_info)
             current_patch.append(hunk)
     return ret
-

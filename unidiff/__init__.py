@@ -21,9 +21,18 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from parser import UnidiffParseException, parse_unidiff
-from patch import PatchSet, PatchedFile, Hunk
-from patch import LINE_TYPE_ADD, LINE_TYPE_DELETE, LINE_TYPE_CONTEXT
+
+"""Unidiff parsing module."""
+
+from unidiff.parser import UnidiffParseException, parse_unidiff
+from unidiff.patch import (
+    LINE_TYPE_ADD,
+    LINE_TYPE_DELETE,
+    LINE_TYPE_CONTEXT,
+    Hunk,
+    PatchedFile,
+    PatchSet
+)
 
 
 VERSION = (0, 1, 0)

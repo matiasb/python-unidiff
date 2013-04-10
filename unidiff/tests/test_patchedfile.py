@@ -33,6 +33,7 @@ class TestPatchedFile(unittest.TestCase):
     """Tests for PatchedFile."""
 
     def setUp(self):
+        super(TestPatchedFile, self).setUp()
         self.patched_file = PatchedFile()
 
     def test_is_added_file(self):

@@ -33,6 +33,7 @@ class TestHunk(unittest.TestCase):
     """Tests for Hunk."""
 
     def setUp(self):
+        super(TestHunk, self).setUp()
         self.sample_line = 'Sample line'
 
     def test_default_is_valid(self):
