@@ -110,6 +110,13 @@ class PatchedFile(list):
         return "%s: %s" % (self.target_file,
                            super(PatchedFile, self).__repr__())
 
+    def __str__(self):
+        s = self.path + "\n"
+        for e in enumerate([repr(e) for e in self]):
+            s += "Hunk #%s: %s\n" % e
+        s += "\n"
+        return s
+
     def as_unified_diff(self):
         """Output file changes in unified diff format."""
         source = "--- %s\n" % self.source_file
@@ -185,3 +192,6 @@ class PatchSet(list):
             data = patched_file.as_unified_diff()
             for line in data:
                 yield line
+
+    def __str__(self):
+        return ''.join([str(e) for e in self])
