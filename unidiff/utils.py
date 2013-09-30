@@ -37,4 +37,3 @@ RE_HUNK_HEADER = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?\ @@")
 # - deleted line
 # \ No newline case (ignore)
 RE_HUNK_BODY_LINE = re.compile(r'^([- \+\\])')
-

@@ -30,6 +30,7 @@ LINE_TYPE_ADD = '+'
 LINE_TYPE_DELETE = '-'
 LINE_TYPE_CONTEXT = ' '
 
+
 class Hunk(object):
     """Each of the modified blocks of a file."""
 
@@ -98,7 +99,7 @@ class Hunk(object):
 
 
 class PatchedFile(list):
-    """Data from a patched file."""
+    """Data of a patched file, each element is a Hunk."""
 
     def __init__(self, source='', target=''):
         super(PatchedFile, self).__init__()
@@ -113,10 +114,10 @@ class PatchedFile(list):
         """Output file changes in unified diff format."""
         source = "--- %s\n" % self.source_file
         yield source
-        
+
         target = "+++ %s\n" % self.target_file
         yield target
-        
+
         for hunk in self:
             hunk_data = hunk.as_unified_diff()
             for line in hunk_data:
@@ -137,7 +138,7 @@ class PatchedFile(list):
             filepath = self.target_file[2:]
         else:
             filepath = self.source_file
-        return filepath 
+        return filepath
 
     @property
     def added(self):
@@ -156,27 +157,27 @@ class PatchedFile(list):
 
     @property
     def is_added_file(self):
-        """Return True if this a file added by the patch."""
+        """Return True if this patch adds a file."""
         return (len(self) == 1 and self[0].source_start == 0 and
                 self[0].source_length == 0)
 
     @property
     def is_deleted_file(self):
-        """Return True if this a file deleted by the patch."""
-        return (len(self) == 1 and self[0].target_start == 0 and 
+        """Return True if this patch deletes a file."""
+        return (len(self) == 1 and self[0].target_start == 0 and
                 self[0].target_length == 0)
 
     def is_modified_file(self):
-        """Return True if this a file modified by the patch."""
+        """Return True if this patch modifies a file."""
         return not (self.is_added_file or self.is_deleted_file)
 
 
 class PatchSet(list):
-    """Full patch data."""
+    """A list of PatchedFiles."""
 
     def as_unified_diff(self):
         """Output patch data in unified diff format.
-        
+
         It won't necessarily match the original unified diff,
         but it should be equivalent.
         """
@@ -184,5 +185,3 @@ class PatchSet(list):
             data = patched_file.as_unified_diff()
             for line in data:
                 yield line
-
-
