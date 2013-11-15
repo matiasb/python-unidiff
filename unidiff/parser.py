@@ -45,9 +45,11 @@ class UnidiffParseException(Exception):
     pass
 
 
-def _parse_hunk(diff, source_start, source_len, target_start, target_len):
+def _parse_hunk(diff, source_start, source_len, target_start, target_len,
+                section_header):
     """Parse a diff hunk details."""
-    hunk = Hunk(source_start, source_len, target_start, target_len)
+    hunk = Hunk(source_start, source_len, target_start, target_len,
+                section_header)
     modified = 0
     deleting = 0
     for line in diff:

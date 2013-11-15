@@ -34,11 +34,13 @@ LINE_TYPE_CONTEXT = ' '
 class Hunk(object):
     """Each of the modified blocks of a file."""
 
-    def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0):
+    def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0,
+                 section_header=''):
         self.source_start = int(src_start)
         self.source_length = int(src_len)
         self.target_start = int(tgt_start)
         self.target_length = int(tgt_len)
+        self.section_header = section_header
         self.source_lines = []
         self.target_lines = []
         self.source_types = []
@@ -49,8 +51,11 @@ class Hunk(object):
         self._unidiff_generator = None
 
     def __repr__(self):
-        return "<@@ %d,%d %d,%d @@>" % (self.source_start, self.source_length,
-                                        self.target_start, self.target_length)
+        return "<@@ %d,%d %d,%d @@ %s>" % (self.source_start,
+                                           self.source_length,
+                                           self.target_start,
+                                           self.target_length,
+                                           self.section_header)
 
     def as_unified_diff(self):
         """Output hunk data in unified diff format."""
