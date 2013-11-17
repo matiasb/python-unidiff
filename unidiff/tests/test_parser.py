@@ -49,20 +49,25 @@ class TestUnidiffParser(unittest.TestCase):
         # three hunks
         self.assertEqual(len(res[0]), 3)
 
-        # Hunk 1: five additions, no deletions, no modifications
+        # Hunk 1: five additions, no deletions, no modifications, a section
+        # header
         self.assertEqual(res[0][0].added, 6)
         self.assertEqual(res[0][0].modified, 0)
         self.assertEqual(res[0][0].deleted, 0)
+        self.assertEqual(res[0][0].section_header, 'Section Header')
 
-        # Hunk 2: no additions, 6 deletions, 2 modifications
+        # Hunk 2: no additions, 6 deletions, 2 modifications, no section header
         self.assertEqual(res[0][1].added, 0)
         self.assertEqual(res[0][1].modified, 2)
         self.assertEqual(res[0][1].deleted, 6)
+        self.assertEqual(res[0][1].section_header, '')
 
-        # Hunk 3: four additions, no deletions, no modifications
+        # Hunk 3: four additions, no deletions, no modifications, no section
+        # header
         self.assertEqual(res[0][2].added, 4)
         self.assertEqual(res[0][2].modified, 0)
         self.assertEqual(res[0][2].deleted, 0)
+        self.assertEqual(res[0][2].section_header, '')
 
         # Check file totals
         self.assertEqual(res[0].added, 10)

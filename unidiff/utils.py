@@ -29,8 +29,9 @@ import re
 RE_SOURCE_FILENAME = re.compile(r'^--- (?P<filename>[^\t\n]+)')
 RE_TARGET_FILENAME = re.compile(r'^\+\+\+ (?P<filename>[^\t\n]+)')
 
-# @@ (source offset, length) (target offset, length) @@
-RE_HUNK_HEADER = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?\ @@")
+# @@ (source offset, length) (target offset, length) @@ (section header)
+RE_HUNK_HEADER = re.compile(
+    r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?\ @@[ ]?(.*)")
 
 #   kept line (context)
 # + added line

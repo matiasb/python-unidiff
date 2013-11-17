@@ -45,33 +45,35 @@ class UnidiffParseException(Exception):
     pass
 
 
-def _parse_hunk(diff, source_start, source_len, target_start, target_len):
+def _parse_hunk(diff, source_start, source_len, target_start, target_len,
+                section_header):
     """Parse a diff hunk details."""
-    hunk = Hunk(source_start, source_len, target_start, target_len)
+    hunk = Hunk(source_start, source_len, target_start, target_len,
+                section_header)
     modified = 0
     deleting = 0
     for line in diff:
         valid_line = RE_HUNK_BODY_LINE.match(line)
-        if valid_line:
-            action = valid_line.group(0)
-            original_line = line[1:]
-            if action == LINE_TYPE_ADD:
-                hunk.append_added_line(original_line)
-                # modified lines == deleted immediately followed by added
-                if deleting > 0:
-                    modified += 1
-                    deleting -= 1
-            elif action == LINE_TYPE_DELETE:
-                hunk.append_deleted_line(original_line)
-                deleting += 1
-            elif action == LINE_TYPE_CONTEXT:
-                hunk.append_context_line(original_line)
-                hunk.add_to_modified_counter(modified)
-                # reset modified auxiliar variables
-                deleting = 0
-                modified = 0
-        else:
+        if not valid_line:
             raise UnidiffParseException('Hunk diff data expected')
+
+        action = valid_line.group(0)
+        original_line = line[1:]
+        if action == LINE_TYPE_ADD:
+            hunk.append_added_line(original_line)
+            # modified lines == deleted immediately followed by added
+            if deleting > 0:
+                modified += 1
+                deleting -= 1
+        elif action == LINE_TYPE_DELETE:
+            hunk.append_deleted_line(original_line)
+            deleting += 1
+        elif action == LINE_TYPE_CONTEXT:
+            hunk.append_context_line(original_line)
+            hunk.add_to_modified_counter(modified)
+            # reset modified auxiliar variables
+            deleting = 0
+            modified = 0
 
         # check hunk len(old_lines) and len(new_lines) are ok
         if hunk.is_valid():
