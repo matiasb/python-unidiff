@@ -44,10 +44,15 @@ class TestUnidiffParser(unittest.TestCase):
         with open(self.sample_file) as diff_file:
             res = parser.parse_unidiff(diff_file)
 
-        # one file in the patch
-        self.assertEqual(len(res), 1)
+        # three file in the patch
+        self.assertEqual(len(res), 3)
         # three hunks
         self.assertEqual(len(res[0]), 3)
+
+        # first file is modified
+        self.assertTrue(res[0].is_modified_file)
+        self.assertFalse(res[0].is_deleted_file)
+        self.assertFalse(res[0].is_added_file)
 
         # Hunk 1: five additions, no deletions, no modifications, a section
         # header
@@ -74,9 +79,18 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(res[0].modified, 2)
         self.assertEqual(res[0].deleted, 6)
 
+        # second file is added
+        self.assertFalse(res[1].is_modified_file)
+        self.assertFalse(res[1].is_deleted_file)
+        self.assertTrue(res[1].is_added_file)
+
+        # third file is removed
+        self.assertFalse(res[2].is_modified_file)
+        self.assertTrue(res[2].is_deleted_file)
+        self.assertFalse(res[2].is_added_file)
+
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
             self.assertRaises(parser.UnidiffParseException,
                               parser.parse_unidiff, diff_file)
-

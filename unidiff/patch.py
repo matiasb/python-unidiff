@@ -179,6 +179,7 @@ class PatchedFile(list):
         return (len(self) == 1 and self[0].target_start == 0 and
                 self[0].target_length == 0)
 
+    @property
     def is_modified_file(self):
         """Return True if this patch modifies a file."""
         return not (self.is_added_file or self.is_deleted_file)
