@@ -37,3 +37,27 @@
 +This paragraph contains
 +important new additions
 +to this document.
+--- /dev/null
++++ /path/to/another_new
+@@ -0,0 +1,9 @@
++This is an important
++notice! It should
++therefore be located at
++the beginning of this
++document!
++
++This part of the
++document has stayed the
++same from version to
+--- /path/to/existing
++++ /dev/null
+@@ -1,9 +0,0 @@
+-This is an important
+-notice! It should
+-therefore be located at
+-the beginning of this
+-document!
+-
+-This part of the
+-document has stayed the
+-same from version to
