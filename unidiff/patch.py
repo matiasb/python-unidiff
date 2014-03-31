@@ -64,13 +64,13 @@ class Hunk(object):
                                                            self.target_lines)
             # throw the header information
             for i in range(3):
-                self._unidiff_generator.next()
+                next(self._unidiff_generator)
 
         head = "@@ -%d,%d +%d,%d @@\n" % (self.source_start, self.source_length,
                                           self.target_start, self.target_length)
         yield head
         while True:
-            yield self._unidiff_generator.next()
+            yield next(self._unidiff_generator)
 
     def is_valid(self):
         """Check hunk header data matches entered lines info."""
