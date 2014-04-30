@@ -36,6 +36,11 @@ class TestHunk(unittest.TestCase):
         super(TestHunk, self).setUp()
         self.sample_line = 'Sample line'
 
+    def test_missing_length(self):
+        hunk = Hunk(src_len=None, tgt_len=None)
+        hunk.append_context_line(self.sample_line)
+        self.assertTrue(hunk.is_valid())
+    
     def test_default_is_valid(self):
         hunk = Hunk()
         self.assertTrue(hunk.is_valid())

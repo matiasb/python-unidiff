@@ -36,6 +36,10 @@ class Hunk(object):
 
     def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0,
                  section_header=''):
+        if src_len is None:
+            src_len = 1
+        if tgt_len is None:
+            tgt_len = 1
         self.source_start = int(src_start)
         self.source_length = int(src_len)
         self.target_start = int(tgt_start)
