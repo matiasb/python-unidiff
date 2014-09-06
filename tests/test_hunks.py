@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2012 Matias Bordese
+# Copyright (c) 2014 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -10,8 +10,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -26,7 +26,12 @@
 
 import unittest
 
-from unidiff.patch import Hunk, LINE_TYPE_ADD, LINE_TYPE_DELETE, LINE_TYPE_CONTEXT
+from unidiff.patch import (
+    LINE_TYPE_ADDED,
+    LINE_TYPE_CONTEXT,
+    LINE_TYPE_REMOVED,
+    Hunk,
+)
 
 
 class TestHunk(unittest.TestCase):
@@ -40,7 +45,7 @@ class TestHunk(unittest.TestCase):
         hunk = Hunk(src_len=None, tgt_len=None)
         hunk.append_context_line(self.sample_line)
         self.assertTrue(hunk.is_valid())
-    
+
     def test_default_is_valid(self):
         hunk = Hunk()
         self.assertTrue(hunk.is_valid())
@@ -70,7 +75,7 @@ class TestHunk(unittest.TestCase):
         self.assertIn(self.sample_line, hunk.target_lines)
         self.assertEqual(hunk.source_types, [])
         self.assertEqual(len(hunk.target_types), 1)
-        self.assertEqual(hunk.target_types[0], LINE_TYPE_ADD)
+        self.assertEqual(hunk.target_types[0], LINE_TYPE_ADDED)
 
     def test_append_deleted_line(self):
         hunk = Hunk(src_len=1, tgt_len=0)
@@ -81,7 +86,7 @@ class TestHunk(unittest.TestCase):
         self.assertIn(self.sample_line, hunk.source_lines)
         self.assertEqual(hunk.target_types, [])
         self.assertEqual(len(hunk.source_types), 1)
-        self.assertEqual(hunk.source_types[0], LINE_TYPE_DELETE)
+        self.assertEqual(hunk.source_types[0], LINE_TYPE_REMOVED)
 
     def test_modified_counter(self):
         hunk = Hunk(src_len=1, tgt_len=1)
@@ -92,4 +97,3 @@ class TestHunk(unittest.TestCase):
         self.assertEqual(hunk.modified, 1)
         self.assertEqual(hunk.added, 0)
         self.assertEqual(hunk.deleted, 0)
-

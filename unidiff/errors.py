@@ -22,17 +22,8 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-"""Unidiff parsing library."""
-
-from unidiff.parser import UnidiffParseError, parse_unidiff
-from unidiff.patch import (
-    LINE_TYPE_ADDED,
-    LINE_TYPE_CONTEXT,
-    LINE_TYPE_REMOVED,
-    Hunk,
-    PatchedFile,
-    PatchSet
-)
+"""Errors and exceptions raised by the package."""
 
 
-VERSION = '0.5'
+class UnidiffParseError(Exception):
+    """Exception when parsing the unified diff data."""

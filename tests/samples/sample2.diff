@@ -1,0 +1,53 @@
+# HG changeset patch
+# Parent 13ba6cbdb304cd251fbc22466cadb21019ee817f
+# User Bill McCloskey <wmccloskey@mozilla.com>
+
+diff --git a/content/base/src/nsContentUtils.cpp b/content/base/src/nsContentUtils.cpp
+--- a/content/base/src/nsContentUtils.cpp
++++ b/content/base/src/nsContentUtils.cpp
+@@ -6369,17 +6369,17 @@ public:
+                                     nsCycleCollectionParticipant* helper)
+   {
+   }
+ 
+   NS_IMETHOD_(void) NoteNextEdgeName(const char* name)
+   {
+   }
+ 
+-  NS_IMETHOD_(void) NoteWeakMapping(void* map, void* key, void* val)
++  NS_IMETHOD_(void) NoteWeakMapping(void* map, void* key, void* kdelegate, void* val)
+   {
+   }
+ 
+   bool mFound;
+ 
+ private:
+   void* mWrapper;
+ };
+diff --git a/js/src/jsfriendapi.cpp b/js/src/jsfriendapi.cpp
+--- a/js/src/jsfriendapi.cpp
++++ b/js/src/jsfriendapi.cpp
+@@ -527,16 +527,24 @@ js::VisitGrayWrapperTargets(JSCompartmen
+ {
+     for (WrapperMap::Enum e(comp->crossCompartmentWrappers); !e.empty(); e.popFront()) {
+         gc::Cell *thing = e.front().key.wrapped;
+         if (thing->isMarked(gc::GRAY))
+             callback(closure, thing);
+     }
+ }
+ 
++JS_FRIEND_API(JSObject *)
++js::GetWeakmapKeyDelegate(JSObject *key)
++{
++    if (JSWeakmapKeyDelegateOp op = key->getClass()->ext.weakmapKeyDelegateOp)
++        return op(key);
++    return NULL;
++}
++
+ JS_FRIEND_API(void)
+ JS_SetAccumulateTelemetryCallback(JSRuntime *rt, JSAccumulateTelemetryDataCallback callback)
+ {
+     rt->telemetryCallback = callback;
+ }
+ 
+ JS_FRIEND_API(JSObject *)

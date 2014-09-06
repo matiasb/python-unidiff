@@ -1,0 +1,36 @@
+diff --git a/added_file b/added_file
+new file mode 100644
+index 0000000..9b710f3
+--- /dev/null
++++ b/added_file
+@@ -0,0 +1,4 @@
++This was missing!
++Adding it now.
++
++Only for testing purposes.
+\ No newline at end of file
+diff --git a/modified_file b/modified_file
+index c7921f5..8946660 100644
+--- a/modified_file
++++ b/modified_file
+@@ -1,5 +1,7 @@
+ This is the original content.
+ 
+-This should be updated.
++This is now updated.
++
++This is a new line.
+ 
+ This will stay.
+\ No newline at end of file
+diff --git a/removed_file b/removed_file
+deleted file mode 100644
+index 1f38447..0000000
+--- a/removed_file
++++ /dev/null
+@@ -1,3 +0,0 @@
+-This content shouldn't be here.
+-
+-This file will be removed.
+\ No newline at end of file
+

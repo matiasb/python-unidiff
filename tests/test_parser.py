@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2012 Matias Bordese
+# Copyright (c) 2014 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -10,8 +10,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -36,8 +36,9 @@ class TestUnidiffParser(unittest.TestCase):
     def setUp(self):
         super(TestUnidiffParser, self).setUp()
         samples_dir = os.path.dirname(os.path.realpath(__file__))
-        self.sample_file = os.path.join(samples_dir, 'sample.diff')
-        self.sample_bad_file = os.path.join(samples_dir, 'sample_bad.diff')
+        self.sample_file = os.path.join(samples_dir, 'samples/sample0.diff')
+        self.sample_bad_file = os.path.join(
+            samples_dir, 'samples/sample1.diff')
 
     def test_parse_sample(self):
         """Parse sample file."""
@@ -92,5 +93,5 @@ class TestUnidiffParser(unittest.TestCase):
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
-            self.assertRaises(parser.UnidiffParseException,
+            self.assertRaises(parser.UnidiffParseError,
                               parser.parse_unidiff, diff_file)

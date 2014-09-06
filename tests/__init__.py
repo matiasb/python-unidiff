@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
 # The MIT License (MIT)
-# Copyright (c) 2012 Matias Bordese
+# Copyright (c) 2014 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -10,8 +8,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -21,20 +19,4 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-"""Useful constants and regexes used by the module."""
-
-import re
-
-RE_SOURCE_FILENAME = re.compile(r'^--- (?P<filename>[^\t\n]+)')
-RE_TARGET_FILENAME = re.compile(r'^\+\+\+ (?P<filename>[^\t\n]+)')
-
-# @@ (source offset, length) (target offset, length) @@ (section header)
-RE_HUNK_HEADER = re.compile(
-    r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?\ @@[ ]?(.*)")
-
-#   kept line (context)
-# + added line
-# - deleted line
-# \ No newline case (ignore)
-RE_HUNK_BODY_LINE = re.compile(r'^([- \+\\])')
+"""Tests for unidiff."""

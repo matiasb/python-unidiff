@@ -1,0 +1,33 @@
+Index: modified_file
+===================================================================
+--- modified_file	(revision 191)
++++ modified_file	(working copy)
+@@ -1,5 +1,7 @@
+ This is the original content.
+ 
+-This should be updated.
++This is now updated.
+ 
++This is a new line.
++
+ This will stay.
+\ No newline at end of file
+Index: removed_file
+===================================================================
+--- removed_file	(revision 188)
++++ removed_file	(working copy)
+@@ -1,3 +0,0 @@
+-This content shouldn't be here.
+-
+-This file will be removed.
+\ No newline at end of file
+Index: added_file
+===================================================================
+--- added_file	(revision 0)
++++ added_file	(revision 0)
+@@ -0,0 +1,4 @@
++This was missing!
++Adding it now.
++
++Only for testing purposes.
+\ No newline at end of file

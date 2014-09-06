@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2012 Matias Bordese
+# Copyright (c) 2014 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -10,8 +10,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -24,14 +24,49 @@
 
 """Classes used by the unified diff parser to keep the diff data."""
 
-import difflib
 
-LINE_TYPE_ADD = '+'
-LINE_TYPE_DELETE = '-'
-LINE_TYPE_CONTEXT = ' '
+from unidiff.constants import (
+    LINE_TYPE_ADDED,
+    LINE_TYPE_CONTEXT,
+    LINE_TYPE_REMOVED,
+)
 
 
-class Hunk(object):
+class Line(object):
+    """A diff line."""
+
+    def __init__(self, value, line_type,
+                 source_line_no=None, target_line_no=None):
+        super(Line, self).__init__()
+        self.source_line_no = source_line_no
+        self.target_line_no = target_line_no
+        self.line_type = line_type
+        self.value = value
+
+    def __str__(self):
+        # PY3 -> unicode
+        return self.value.encode('utf-8')
+
+    def __unicode__(self):
+        return self.value
+
+    @property
+    def is_added(self):
+        return self.line_type == LINE_TYPE_ADDED
+
+    @property
+    def is_removed(self):
+        return self.line_type == LINE_TYPE_REMOVED
+
+    @property
+    def is_context(self):
+        return self.line_type == LINE_TYPE_CONTEXT
+
+    def as_unified_diff(self):
+        return '%s%s' % (self.line_type, self.value)
+
+
+class Hunk(list):
     """Each of the modified blocks of a file."""
 
     def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0,
@@ -45,14 +80,6 @@ class Hunk(object):
         self.target_start = int(tgt_start)
         self.target_length = int(tgt_len)
         self.section_header = section_header
-        self.source_lines = []
-        self.target_lines = []
-        self.source_types = []
-        self.target_types = []
-        self.modified = 0
-        self.added = 0
-        self.deleted = 0
-        self._unidiff_generator = None
 
     def __repr__(self):
         return "<@@ %d,%d %d,%d @@ %s>" % (self.source_start,
@@ -63,57 +90,51 @@ class Hunk(object):
 
     def as_unified_diff(self):
         """Output hunk data in unified diff format."""
-        if self._unidiff_generator is None:
-            self._unidiff_generator = difflib.unified_diff(self.source_lines,
-                                                           self.target_lines)
-            # throw the header information
-            for i in range(3):
-                next(self._unidiff_generator)
-
-        head = "@@ -%d,%d +%d,%d @@\n" % (self.source_start, self.source_length,
-                                          self.target_start, self.target_length)
+        head = "@@ -%d,%d +%d,%d @@ %s\n" % (
+            self.source_start, self.source_length,
+            self.target_start, self.target_length, self.section_header)
         yield head
-        while True:
-            yield next(self._unidiff_generator)
+        for line in self:
+            yield line.as_unified_diff()
 
     def is_valid(self):
         """Check hunk header data matches entered lines info."""
-        return (len(self.source_lines) == self.source_length and
-                len(self.target_lines) == self.target_length)
+        return (len(self.source) == self.source_length and
+                len(self.target) == self.target_length)
 
-    def append_context_line(self, line):
-        """Add a new context line to the hunk."""
-        self.source_lines.append(line)
-        self.target_lines.append(line)
-        self.source_types.append(LINE_TYPE_CONTEXT)
-        self.target_types.append(LINE_TYPE_CONTEXT)
+    @property
+    def added(self):
+        return len([l for l in self if l.is_added])
 
-    def append_added_line(self, line):
-        """Add a new added line to the hunk."""
-        self.target_lines.append(line)
-        self.target_types.append(LINE_TYPE_ADD)
-        self.added += 1
+    @property
+    def removed(self):
+        return len([l for l in self if l.is_removed])
 
-    def append_deleted_line(self, line):
-        """Add a new deleted line to the hunk."""
-        self.source_lines.append(line)
-        self.source_types.append(LINE_TYPE_DELETE)
-        self.deleted += 1
+    @property
+    def source(self):
+        return [unicode(l) for l in self.source_lines()]
 
-    def add_to_modified_counter(self, mods):
-        """Update the number of lines modified in the hunk."""
-        self.deleted -= mods
-        self.added -= mods
-        self.modified += mods
+    @property
+    def target(self):
+        return [unicode(l) for l in self.target_lines()]
+
+    def source_lines(self):
+        return (l for l in self if l.is_context or l.is_removed)
+
+    def target_lines(self):
+        return (l for l in self if l.is_context or l.is_added)
 
 
 class PatchedFile(list):
     """Data of a patched file, each element is a Hunk."""
 
-    def __init__(self, source='', target=''):
+    def __init__(self, source='', target='',
+                 source_timestamp=None, target_timestamp=None):
         super(PatchedFile, self).__init__()
         self.source_file = source
+        self.source_timestamp = source_timestamp
         self.target_file = target
+        self.target_timestamp = target_timestamp
 
     def __repr__(self):
         return "%s: %s" % (self.target_file,
@@ -162,35 +183,53 @@ class PatchedFile(list):
         return sum([hunk.added for hunk in self])
 
     @property
-    def deleted(self):
-        """Return the file total deleted lines."""
-        return sum([hunk.deleted for hunk in self])
-
-    @property
-    def modified(self):
-        """Return the file total modified lines."""
-        return sum([hunk.modified for hunk in self])
+    def removed(self):
+        """Return the file total removed lines."""
+        return sum([hunk.removed for hunk in self])
 
     @property
     def is_added_file(self):
-        """Return True if this patch adds a file."""
+        """Return True if this patch adds the file."""
         return (len(self) == 1 and self[0].source_start == 0 and
                 self[0].source_length == 0)
 
     @property
-    def is_deleted_file(self):
-        """Return True if this patch deletes a file."""
+    def is_removed_file(self):
+        """Return True if this patch removes the file."""
         return (len(self) == 1 and self[0].target_start == 0 and
                 self[0].target_length == 0)
 
     @property
     def is_modified_file(self):
-        """Return True if this patch modifies a file."""
-        return not (self.is_added_file or self.is_deleted_file)
+        """Return True if this patch modifies the file."""
+        return not (self.is_added_file or self.is_removed_file)
 
 
 class PatchSet(list):
     """A list of PatchedFiles."""
+
+    #def __init__(self, f):
+
+    def __str__(self):
+        return ''.join([str(e) for e in self])
+
+    @classmethod
+    def from_filename(cls, filename):
+        with open(filename, 'r') as f:
+            instance = cls(f)
+        return instance
+
+    @property
+    def added(self):
+        return [f for f in self if f.is_added_file]
+
+    @property
+    def removed(self):
+        return [f for f in self if f.is_removed_file]
+
+    @property
+    def modified(self):
+        return [f for f in self if f.is_modified_file]
 
     def as_unified_diff(self):
         """Output patch data in unified diff format.
@@ -202,6 +241,3 @@ class PatchSet(list):
             data = patched_file.as_unified_diff()
             for line in data:
                 yield line
-
-    def __str__(self):
-        return ''.join([str(e) for e in self])
