@@ -24,14 +24,14 @@
 
 """Unidiff parsing library."""
 
-from unidiff.parser import UnidiffParseError, parse_unidiff
 from unidiff.patch import (
     LINE_TYPE_ADDED,
     LINE_TYPE_CONTEXT,
     LINE_TYPE_REMOVED,
     Hunk,
     PatchedFile,
-    PatchSet
+    PatchSet,
+    UnidiffParseError,
 )
 
 

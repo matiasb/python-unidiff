@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from unidiff import parse_unidiff
+from unidiff import PatchSet
 
 
 def get_parser():
@@ -20,28 +20,22 @@ if __name__ == '__main__':
 
     if args.diff_file:
         diff_file = args.diff_file
-        # close file
     else:
         diff_file = sys.stdin
 
-    #print diff_file
-    #print args.show_diff
-    res = parse_unidiff(diff_file)
+    patch = PatchSet(diff_file)
     if args.show_diff:
-        for i in res.as_unified_diff():
+        for i in patch.as_unified_diff():
             print i
 
-    for f in res:
-        print f.path, '+%d' % f.added, '-%d' % f.removed
+    additions = 0
+    deletions = 0
+    for f in patch:
+        additions += f.added
+        deletions += f.removed
+        print '%s:' % f.path, '+%d additions,' % f.added, '-%d deletions' % f.removed
 
-    #print res
-    #(show diff? metadata only?)
-    #try:
-        #metadata = PatchSet.from_file()
-    #except UnidiffParseError:
-        #print 'Error'
-        #sys.exit(1)
-
-    #print added_files (+ lines)
-    #print removed_files (- lines)
-    #print modified_files (for each, +/-)
+    print
+    print '%d modified file(s), %d added file(s), %d removed file(s)' % (
+        len(patch.modified_files), len(patch.added_files), len(patch.removed_files))
+    print 'Total: %d addition(s), %d deletion(s)' % (additions, deletions)

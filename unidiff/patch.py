@@ -29,7 +29,12 @@ from unidiff.constants import (
     LINE_TYPE_ADDED,
     LINE_TYPE_CONTEXT,
     LINE_TYPE_REMOVED,
+    RE_HUNK_BODY_LINE,
+    RE_HUNK_HEADER,
+    RE_SOURCE_FILENAME,
+    RE_TARGET_FILENAME,
 )
+from unidiff.errors import UnidiffParseError
 
 
 class Line(object):
@@ -90,7 +95,7 @@ class Hunk(list):
 
     def as_unified_diff(self):
         """Output hunk data in unified diff format."""
-        head = "@@ -%d,%d +%d,%d @@ %s\n" % (
+        head = "@@ -%d,%d +%d,%d @@ %s" % (
             self.source_start, self.source_length,
             self.target_start, self.target_length, self.section_header)
         yield head
@@ -147,12 +152,52 @@ class PatchedFile(list):
         s += "\n"
         return s
 
+    def _parse_hunk(self, header, diff):
+        """Parse hunk details."""
+        header_info = RE_HUNK_HEADER.match(header)
+        hunk_info = header_info.groups()
+        hunk = Hunk(*hunk_info)
+
+        source_line_no = hunk.source_start
+        target_line_no = hunk.target_start
+
+        for line in diff:
+            valid_line = RE_HUNK_BODY_LINE.match(line)
+            if not valid_line:
+                raise UnidiffParseError('Hunk diff line expected: %s' % line)
+
+            line_type = valid_line.group('line_type')
+            value = valid_line.group('value')
+            original_line = Line(value, line_type=line_type)
+            if line_type == LINE_TYPE_ADDED:
+                original_line.target_line_no = target_line_no
+                target_line_no += 1
+            elif line_type == LINE_TYPE_REMOVED:
+                original_line.source_line_no = source_line_no
+                source_line_no += 1
+            elif line_type == LINE_TYPE_CONTEXT:
+                original_line.target_line_no = target_line_no
+                target_line_no += 1
+                original_line.source_line_no = source_line_no
+                source_line_no += 1
+            else:
+                original_line = None
+
+            if original_line:
+                hunk.append(original_line)
+
+            # check hunk len(old_lines) and len(new_lines) are ok
+            if hunk.is_valid():
+                break
+
+        self.append(hunk)
+
     def as_unified_diff(self):
         """Output file changes in unified diff format."""
-        source = "--- %s\n" % self.source_file
+        source = "--- %s" % self.source_file
         yield source
 
-        target = "+++ %s\n" % self.target_file
+        target = "+++ %s" % self.target_file
         yield target
 
         for hunk in self:
@@ -163,7 +208,6 @@ class PatchedFile(list):
     @property
     def path(self):
         """Return the file path abstracted from VCS."""
-        # TODO: improve git/hg detection
         if (self.source_file.startswith('a/') and
                 self.target_file.startswith('b/')):
             filepath = self.source_file[2:]
@@ -208,10 +252,45 @@ class PatchedFile(list):
 class PatchSet(list):
     """A list of PatchedFiles."""
 
-    #def __init__(self, f):
+    def __init__(self, f):
+        super(PatchSet, self).__init__()
+        self._parse(f)
 
     def __str__(self):
         return ''.join([str(e) for e in self])
+
+    def _parse(self, diff):
+        current_file = None
+
+        for line in diff:
+            # check for source file header
+            is_source_filename = RE_SOURCE_FILENAME.match(line)
+            if is_source_filename:
+                source_file = is_source_filename.group('filename')
+                source_timestamp = is_source_filename.group('timestamp')
+                # reset current file
+                current_file = None
+                continue
+
+            # check for target file header
+            is_target_filename = RE_TARGET_FILENAME.match(line)
+            if is_target_filename:
+                if current_file is not None:
+                    raise UnidiffParseError('Target without source: %s' % line)
+                target_file = is_target_filename.group('filename')
+                target_timestamp = is_target_filename.group('timestamp')
+                # add current file to PatchSet
+                current_file = PatchedFile(source_file, target_file,
+                                           source_timestamp, target_timestamp)
+                self.append(current_file)
+                continue
+
+            # check for hunk header
+            is_hunk_header = RE_HUNK_HEADER.match(line)
+            if is_hunk_header:
+                if current_file is None:
+                    raise UnidiffParseError('Unexpected hunk found: %s' % line)
+                current_file._parse_hunk(line, diff)
 
     @classmethod
     def from_filename(cls, filename):
@@ -220,15 +299,15 @@ class PatchSet(list):
         return instance
 
     @property
-    def added(self):
+    def added_files(self):
         return [f for f in self if f.is_added_file]
 
     @property
-    def removed(self):
+    def removed_files(self):
         return [f for f in self if f.is_removed_file]
 
     @property
-    def modified(self):
+    def modified_files(self):
         return [f for f in self if f.is_modified_file]
 
     def as_unified_diff(self):

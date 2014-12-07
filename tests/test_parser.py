@@ -27,7 +27,8 @@
 import os.path
 import unittest
 
-from unidiff import parser
+from unidiff import PatchSet
+from unidiff.errors import UnidiffParseError
 
 
 class TestUnidiffParser(unittest.TestCase):
@@ -43,7 +44,7 @@ class TestUnidiffParser(unittest.TestCase):
     def test_parse_sample(self):
         """Parse sample file."""
         with open(self.sample_file) as diff_file:
-            res = parser.parse_unidiff(diff_file)
+            res = PatchSet(diff_file)
 
         # three file in the patch
         self.assertEqual(len(res), 3)
@@ -87,5 +88,47 @@ class TestUnidiffParser(unittest.TestCase):
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
-            self.assertRaises(parser.UnidiffParseError,
-                              parser.parse_unidiff, diff_file)
+            self.assertRaises(UnidiffParseError, PatchSet, diff_file)
+
+
+class TestVCSSamples(unittest.TestCase):
+    """Tests for real examples from VCS."""
+
+    samples = ['bzr.diff', 'git.diff', 'hg.diff', 'svn.diff']
+
+    def test_samples(self):
+        tests_dir = os.path.dirname(os.path.realpath(__file__))
+        for fname in self.samples:
+            file_path = os.path.join(tests_dir, 'samples', fname)
+            with open(file_path) as diff_file:
+                res = PatchSet(diff_file)
+
+            # 3 files updated by diff
+            self.assertEqual(len(res), 3)
+
+            # 1 added file
+            added_files = res.added_files
+            self.assertEqual(len(added_files), 1)
+            self.assertEqual(added_files[0].path, 'added_file')
+            # 1 hunk, 4 lines
+            self.assertEqual(len(added_files[0]), 1)
+            self.assertEqual(added_files[0].added, 4)
+            self.assertEqual(added_files[0].removed, 0)
+
+            # 1 removed file
+            removed_files = res.removed_files
+            self.assertEqual(len(removed_files), 1)
+            self.assertEqual(removed_files[0].path, 'removed_file')
+            # 1 hunk, 3 removed lines
+            self.assertEqual(len(removed_files[0]), 1)
+            self.assertEqual(removed_files[0].added, 0)
+            self.assertEqual(removed_files[0].removed, 3)
+
+            # 1 modified file
+            modified_files = res.modified_files
+            self.assertEqual(len(modified_files), 1)
+            self.assertEqual(modified_files[0].path, 'modified_file')
+            # 1 hunk, 3 added lines, 1 removed line
+            self.assertEqual(len(modified_files[0]), 1)
+            self.assertEqual(modified_files[0].added, 3)
+            self.assertEqual(modified_files[0].removed, 1)
