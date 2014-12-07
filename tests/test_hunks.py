@@ -31,6 +31,7 @@ from unidiff.patch import (
     LINE_TYPE_CONTEXT,
     LINE_TYPE_REMOVED,
     Hunk,
+    Line,
 )
 
 
@@ -39,11 +40,13 @@ class TestHunk(unittest.TestCase):
 
     def setUp(self):
         super(TestHunk, self).setUp()
-        self.sample_line = 'Sample line'
+        self.context_line = Line('Sample line', line_type=LINE_TYPE_CONTEXT)
+        self.added_line = Line('Sample line', line_type=LINE_TYPE_ADDED)
+        self.removed_line = Line('Sample line', line_type=LINE_TYPE_REMOVED)
 
     def test_missing_length(self):
         hunk = Hunk(src_len=None, tgt_len=None)
-        hunk.append_context_line(self.sample_line)
+        hunk.append(self.context_line)
         self.assertTrue(hunk.is_valid())
 
     def test_default_is_valid(self):
@@ -56,44 +59,32 @@ class TestHunk(unittest.TestCase):
 
     def test_append_context(self):
         hunk = Hunk(src_len=1, tgt_len=1)
-        hunk.append_context_line(self.sample_line)
+        hunk.append(self.context_line)
         self.assertTrue(hunk.is_valid())
-        self.assertEqual(len(hunk.source_lines), 1)
-        self.assertEqual(hunk.target_lines, hunk.source_lines)
-        self.assertIn(self.sample_line, hunk.source_lines)
-        self.assertEqual(len(hunk.source_types), 1)
-        self.assertEqual(hunk.target_types, hunk.source_types)
-        self.assertEqual(hunk.source_types[0], LINE_TYPE_CONTEXT)
-        self.assertEqual(hunk.target_types[0], LINE_TYPE_CONTEXT)
+        self.assertEqual(len(hunk.source), 1)
+        self.assertEqual(hunk.target, hunk.source)
+        self.assertIn(unicode(self.context_line), hunk.source)
+        source_lines = list(hunk.source_lines())
+        target_lines = list(hunk.target_lines())
+        self.assertEqual(target_lines, source_lines)
+        self.assertEqual(target_lines, [self.context_line])
 
     def test_append_added_line(self):
         hunk = Hunk(src_len=0, tgt_len=1)
-        hunk.append_added_line(self.sample_line)
+        hunk.append(self.added_line)
         self.assertTrue(hunk.is_valid())
-        self.assertEqual(len(hunk.target_lines), 1)
-        self.assertEqual(hunk.source_lines, [])
-        self.assertIn(self.sample_line, hunk.target_lines)
-        self.assertEqual(hunk.source_types, [])
-        self.assertEqual(len(hunk.target_types), 1)
-        self.assertEqual(hunk.target_types[0], LINE_TYPE_ADDED)
+        self.assertEqual(len(hunk.target), 1)
+        self.assertEqual(hunk.source, [])
+        self.assertIn(unicode(self.added_line), hunk.target)
+        target_lines = list(hunk.target_lines())
+        self.assertEqual(target_lines, [self.added_line])
 
     def test_append_deleted_line(self):
         hunk = Hunk(src_len=1, tgt_len=0)
-        hunk.append_deleted_line(self.sample_line)
+        hunk.append(self.removed_line)
         self.assertTrue(hunk.is_valid())
-        self.assertEqual(len(hunk.source_lines), 1)
-        self.assertEqual(hunk.target_lines, [])
-        self.assertIn(self.sample_line, hunk.source_lines)
-        self.assertEqual(hunk.target_types, [])
-        self.assertEqual(len(hunk.source_types), 1)
-        self.assertEqual(hunk.source_types[0], LINE_TYPE_REMOVED)
-
-    def test_modified_counter(self):
-        hunk = Hunk(src_len=1, tgt_len=1)
-        hunk.append_deleted_line(self.sample_line)
-        hunk.append_added_line(self.sample_line)
-        hunk.add_to_modified_counter(1)
-        self.assertTrue(hunk.is_valid())
-        self.assertEqual(hunk.modified, 1)
-        self.assertEqual(hunk.added, 0)
-        self.assertEqual(hunk.deleted, 0)
+        self.assertEqual(len(hunk.source), 1)
+        self.assertEqual(hunk.target, [])
+        self.assertIn(unicode(self.removed_line), hunk.source)
+        source_lines = list(hunk.source_lines())
+        self.assertEqual(source_lines, [self.removed_line])

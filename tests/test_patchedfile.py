@@ -41,10 +41,10 @@ class TestPatchedFile(unittest.TestCase):
         self.patched_file.append(hunk)
         self.assertTrue(self.patched_file.is_added_file)
 
-    def test_is_deleted_file(self):
+    def test_is_removed_file(self):
         hunk = Hunk(src_start=1, src_len=10, tgt_start=0, tgt_len=0)
         self.patched_file.append(hunk)
-        self.assertTrue(self.patched_file.is_deleted_file)
+        self.assertTrue(self.patched_file.is_removed_file)
 
     def test_is_modified_file(self):
         hunk = Hunk(src_start=1, src_len=10, tgt_start=1, tgt_len=8)

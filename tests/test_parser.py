@@ -52,42 +52,36 @@ class TestUnidiffParser(unittest.TestCase):
 
         # first file is modified
         self.assertTrue(res[0].is_modified_file)
-        self.assertFalse(res[0].is_deleted_file)
+        self.assertFalse(res[0].is_removed_file)
         self.assertFalse(res[0].is_added_file)
 
-        # Hunk 1: five additions, no deletions, no modifications, a section
-        # header
+        # Hunk 1: five additions, no deletions, a section header
         self.assertEqual(res[0][0].added, 6)
-        self.assertEqual(res[0][0].modified, 0)
-        self.assertEqual(res[0][0].deleted, 0)
+        self.assertEqual(res[0][0].removed, 0)
         self.assertEqual(res[0][0].section_header, 'Section Header')
 
-        # Hunk 2: no additions, 6 deletions, 2 modifications, no section header
-        self.assertEqual(res[0][1].added, 0)
-        self.assertEqual(res[0][1].modified, 2)
-        self.assertEqual(res[0][1].deleted, 6)
+        # Hunk 2: 2 additions, 8 deletions, no section header
+        self.assertEqual(res[0][1].added, 2)
+        self.assertEqual(res[0][1].removed, 8)
         self.assertEqual(res[0][1].section_header, '')
 
-        # Hunk 3: four additions, no deletions, no modifications, no section
-        # header
+        # Hunk 3: four additions, no deletions, no section header
         self.assertEqual(res[0][2].added, 4)
-        self.assertEqual(res[0][2].modified, 0)
-        self.assertEqual(res[0][2].deleted, 0)
+        self.assertEqual(res[0][2].removed, 0)
         self.assertEqual(res[0][2].section_header, '')
 
         # Check file totals
-        self.assertEqual(res[0].added, 10)
-        self.assertEqual(res[0].modified, 2)
-        self.assertEqual(res[0].deleted, 6)
+        self.assertEqual(res[0].added, 12)
+        self.assertEqual(res[0].removed, 8)
 
         # second file is added
         self.assertFalse(res[1].is_modified_file)
-        self.assertFalse(res[1].is_deleted_file)
+        self.assertFalse(res[1].is_removed_file)
         self.assertTrue(res[1].is_added_file)
 
         # third file is removed
         self.assertFalse(res[2].is_modified_file)
-        self.assertTrue(res[2].is_deleted_file)
+        self.assertTrue(res[2].is_removed_file)
         self.assertFalse(res[2].is_added_file)
 
     def test_parse_malformed_diff(self):
