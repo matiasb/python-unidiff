@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Matías Bordese
 
+from __future__ import unicode_literals
+
 from setuptools import setup, find_packages
 
 from unidiff import VERSION

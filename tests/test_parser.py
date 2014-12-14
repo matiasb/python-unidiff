@@ -24,6 +24,9 @@
 
 """Tests for the unified diff parser process."""
 
+from __future__ import unicode_literals
+
+import codecs
 import os.path
 import unittest
 
@@ -43,7 +46,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_parse_sample(self):
         """Parse sample file."""
-        with open(self.sample_file) as diff_file:
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
             res = PatchSet(diff_file)
 
         # three file in the patch
@@ -100,7 +103,7 @@ class TestVCSSamples(unittest.TestCase):
         tests_dir = os.path.dirname(os.path.realpath(__file__))
         for fname in self.samples:
             file_path = os.path.join(tests_dir, 'samples', fname)
-            with open(file_path) as diff_file:
+            with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
                 res = PatchSet(diff_file)
 
             # 3 files updated by diff

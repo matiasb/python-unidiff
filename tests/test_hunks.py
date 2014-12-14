@@ -24,6 +24,8 @@
 
 """Tests for Hunk."""
 
+from __future__ import unicode_literals
+
 import unittest
 
 from unidiff.patch import (
@@ -63,7 +65,7 @@ class TestHunk(unittest.TestCase):
         self.assertTrue(hunk.is_valid())
         self.assertEqual(len(hunk.source), 1)
         self.assertEqual(hunk.target, hunk.source)
-        self.assertIn(unicode(self.context_line), hunk.source)
+        self.assertIn(str(self.context_line), hunk.source)
         source_lines = list(hunk.source_lines())
         target_lines = list(hunk.target_lines())
         self.assertEqual(target_lines, source_lines)
@@ -75,7 +77,7 @@ class TestHunk(unittest.TestCase):
         self.assertTrue(hunk.is_valid())
         self.assertEqual(len(hunk.target), 1)
         self.assertEqual(hunk.source, [])
-        self.assertIn(unicode(self.added_line), hunk.target)
+        self.assertIn(str(self.added_line), hunk.target)
         target_lines = list(hunk.target_lines())
         self.assertEqual(target_lines, [self.added_line])
 
@@ -85,6 +87,6 @@ class TestHunk(unittest.TestCase):
         self.assertTrue(hunk.is_valid())
         self.assertEqual(len(hunk.source), 1)
         self.assertEqual(hunk.target, [])
-        self.assertIn(unicode(self.removed_line), hunk.source)
+        self.assertIn(str(self.removed_line), hunk.source)
         source_lines = list(hunk.source_lines())
         self.assertEqual(source_lines, [self.removed_line])

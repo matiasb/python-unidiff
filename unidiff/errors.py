@@ -24,6 +24,8 @@
 
 """Errors and exceptions raised by the package."""
 
+from __future__ import unicode_literals
+
 
 class UnidiffParseError(Exception):
     """Exception when parsing the unified diff data."""

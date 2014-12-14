@@ -24,8 +24,13 @@
 
 """Classes used by the unified diff parser to keep the diff data."""
 
+from __future__ import unicode_literals
+
+import codecs
+import sys
 
 from unidiff.constants import (
+    DEFAULT_ENCODING,
     LINE_TYPE_ADDED,
     LINE_TYPE_CONTEXT,
     LINE_TYPE_REMOVED,
@@ -37,6 +42,23 @@ from unidiff.constants import (
 from unidiff.errors import UnidiffParseError
 
 
+PY2 = sys.version_info[0] == 2
+if PY2:
+    open_file = codecs.open
+    make_str = lambda x: x.encode(DEFAULT_ENCODING)
+
+    def implements_to_string(cls):
+        cls.__unicode__ = cls.__str__
+        cls.__str__ = lambda x: x.__unicode__().encode(DEFAULT_ENCODING)
+        return cls
+else:
+    open_file = open
+    make_str = str
+    implements_to_string = lambda x: x
+    unicode = str
+
+
+@implements_to_string
 class Line(object):
     """A diff line."""
 
@@ -48,12 +70,11 @@ class Line(object):
         self.line_type = line_type
         self.value = value
 
-    def __str__(self):
-        # PY3 -> unicode
-        return self.value.encode('utf-8')
+    def __repr__(self):
+        return make_str("<Line: %s>") % make_str(self)
 
-    def __unicode__(self):
-        return self.value
+    def __str__(self):
+        return "%s%s" % (self.line_type, self.value)
 
     @property
     def is_added(self):
@@ -67,10 +88,8 @@ class Line(object):
     def is_context(self):
         return self.line_type == LINE_TYPE_CONTEXT
 
-    def as_unified_diff(self):
-        return '%s%s' % (self.line_type, self.value)
 
-
+@implements_to_string
 class Hunk(list):
     """Each of the modified blocks of a file."""
 
@@ -87,20 +106,19 @@ class Hunk(list):
         self.section_header = section_header
 
     def __repr__(self):
-        return "<@@ %d,%d %d,%d @@ %s>" % (self.source_start,
-                                           self.source_length,
-                                           self.target_start,
-                                           self.target_length,
-                                           self.section_header)
+        value = "<Hunk: @@ %d,%d %d,%d @@ %s>" % (self.source_start,
+                                                  self.source_length,
+                                                  self.target_start,
+                                                  self.target_length,
+                                                  self.section_header)
+        return make_str(value)
 
-    def as_unified_diff(self):
-        """Output hunk data in unified diff format."""
-        head = "@@ -%d,%d +%d,%d @@ %s" % (
+    def __str__(self):
+        head = "@@ -%d,%d +%d,%d @@ %s\n" % (
             self.source_start, self.source_length,
             self.target_start, self.target_length, self.section_header)
-        yield head
-        for line in self:
-            yield line.as_unified_diff()
+        content = '\n'.join(unicode(line) for line in self)
+        return head + content
 
     def is_valid(self):
         """Check hunk header data matches entered lines info."""
@@ -109,29 +127,35 @@ class Hunk(list):
 
     @property
     def added(self):
+        """Number of added lines in the hunk."""
         return len([l for l in self if l.is_added])
 
     @property
     def removed(self):
+        """Number of removed lines in the hunk."""
         return len([l for l in self if l.is_removed])
 
     @property
     def source(self):
-        return [unicode(l) for l in self.source_lines()]
+        """Hunk lines from source file as a list."""
+        return [str(l) for l in self.source_lines()]
 
     @property
     def target(self):
-        return [unicode(l) for l in self.target_lines()]
+        """Hunk lines from target file as a list."""
+        return [str(l) for l in self.target_lines()]
 
     def source_lines(self):
+        """Hunk lines from source file (generator)."""
         return (l for l in self if l.is_context or l.is_removed)
 
     def target_lines(self):
+        """Hunk lines from target file (generator)."""
         return (l for l in self if l.is_context or l.is_added)
 
 
 class PatchedFile(list):
-    """Data of a patched file, each element is a Hunk."""
+    """Patch updated file, it is a list of Hunks."""
 
     def __init__(self, source='', target='',
                  source_timestamp=None, target_timestamp=None):
@@ -142,15 +166,13 @@ class PatchedFile(list):
         self.target_timestamp = target_timestamp
 
     def __repr__(self):
-        return "%s: %s" % (self.target_file,
-                           super(PatchedFile, self).__repr__())
+        return make_str("<PatchedFile: %s>") % make_str(self.path)
 
     def __str__(self):
-        s = self.path + "\n"
-        for e in enumerate([repr(e) for e in self]):
-            s += "Hunk #%s: %s\n" % e
-        s += "\n"
-        return s
+        source = "--- %s\n" % self.source_file
+        target = "+++ %s\n" % self.target_file
+        hunks = '\n'.join(unicode(hunk) for hunk in self)
+        return source + target + hunks
 
     def _parse_hunk(self, header, diff):
         """Parse hunk details."""
@@ -191,19 +213,6 @@ class PatchedFile(list):
                 break
 
         self.append(hunk)
-
-    def as_unified_diff(self):
-        """Output file changes in unified diff format."""
-        source = "--- %s" % self.source_file
-        yield source
-
-        target = "+++ %s" % self.target_file
-        yield target
-
-        for hunk in self:
-            hunk_data = hunk.as_unified_diff()
-            for line in hunk_data:
-                yield line
 
     @property
     def path(self):
@@ -249,6 +258,7 @@ class PatchedFile(list):
         return not (self.is_added_file or self.is_removed_file)
 
 
+@implements_to_string
 class PatchSet(list):
     """A list of PatchedFiles."""
 
@@ -256,8 +266,11 @@ class PatchSet(list):
         super(PatchSet, self).__init__()
         self._parse(f)
 
+    def __repr__(self):
+        return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
+
     def __str__(self):
-        return ''.join([str(e) for e in self])
+        return '\n'.join(unicode(patched_file) for patched_file in self)
 
     def _parse(self, diff):
         current_file = None
@@ -293,30 +306,23 @@ class PatchSet(list):
                 current_file._parse_hunk(line, diff)
 
     @classmethod
-    def from_filename(cls, filename):
-        with open(filename, 'r') as f:
+    def from_filename(cls, filename, encoding=DEFAULT_ENCODING):
+        """Return a PatchSet instance given a diff filename."""
+        with open_file(filename, 'r', encoding=encoding) as f:
             instance = cls(f)
         return instance
 
     @property
     def added_files(self):
+        """Return patch added files as a list."""
         return [f for f in self if f.is_added_file]
 
     @property
     def removed_files(self):
+        """Return patch removed files as a list."""
         return [f for f in self if f.is_removed_file]
 
     @property
     def modified_files(self):
+        """Return patch modified files as a list."""
         return [f for f in self if f.is_modified_file]
-
-    def as_unified_diff(self):
-        """Output patch data in unified diff format.
-
-        It won't necessarily match the original unified diff,
-        but it should be equivalent.
-        """
-        for patched_file in self:
-            data = patched_file.as_unified_diff()
-            for line in data:
-                yield line

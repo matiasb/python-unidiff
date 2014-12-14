@@ -24,6 +24,8 @@
 
 """Useful constants and regexes used by the package."""
 
+from __future__ import unicode_literals
+
 import re
 
 
@@ -42,6 +44,8 @@ RE_HUNK_HEADER = re.compile(
 # \ No newline case (ignore)
 RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \+\\])(?P<value>.*)')
 
+
+DEFAULT_ENCODING = 'UTF-8'
 
 LINE_TYPE_ADDED = '+'
 LINE_TYPE_REMOVED = '-'
