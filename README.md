@@ -59,6 +59,17 @@ that will return the unified diff data of it.
 
 As a quick example of what can be done, check bin/unidiff file.
 
+Also, once installed, unidiff provides a command-line program that displays
+information from diff data (a file, or stdin). For example:
+
+    $ git diff | unidiff
+    Summary
+    -------
+    README.md: +6 additions, -0 deletions
+
+    1 modified file(s), 0 added file(s), 0 removed file(s)
+    Total: 6 addition(s), 0 deletion(s)
+
 
 References
 ----------
