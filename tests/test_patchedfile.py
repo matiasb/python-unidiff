@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2012 Matias Bordese
+# Copyright (c) 2014 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -10,8 +10,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -23,6 +23,8 @@
 
 
 """Tests for PatchedFile."""
+
+from __future__ import unicode_literals
 
 import unittest
 
@@ -41,13 +43,12 @@ class TestPatchedFile(unittest.TestCase):
         self.patched_file.append(hunk)
         self.assertTrue(self.patched_file.is_added_file)
 
-    def test_is_deleted_file(self):
+    def test_is_removed_file(self):
         hunk = Hunk(src_start=1, src_len=10, tgt_start=0, tgt_len=0)
         self.patched_file.append(hunk)
-        self.assertTrue(self.patched_file.is_deleted_file)
+        self.assertTrue(self.patched_file.is_removed_file)
 
     def test_is_modified_file(self):
         hunk = Hunk(src_start=1, src_len=10, tgt_start=1, tgt_len=8)
         self.patched_file.append(hunk)
         self.assertTrue(self.patched_file.is_modified_file)
-

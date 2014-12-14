@@ -22,20 +22,10 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-"""Unidiff parsing library."""
+"""Errors and exceptions raised by the package."""
 
 from __future__ import unicode_literals
 
-from unidiff.patch import (
-    DEFAULT_ENCODING,
-    LINE_TYPE_ADDED,
-    LINE_TYPE_CONTEXT,
-    LINE_TYPE_REMOVED,
-    Hunk,
-    PatchedFile,
-    PatchSet,
-    UnidiffParseError,
-)
 
-
-VERSION = '0.5'
+class UnidiffParseError(Exception):
+    """Exception when parsing the unified diff data."""
