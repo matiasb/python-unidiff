@@ -20,7 +20,7 @@ setup(
     scripts=['bin/unidiff'],
     classifiers=[
         'Intended Audience :: Developers',
-        'Development Status :: 4 - Beta'
+        'Development Status :: 4 - Beta',
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',

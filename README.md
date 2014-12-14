@@ -58,3 +58,10 @@ At any point you can get the string representation of the current object, and
 that will return the unified diff data of it.
 
 As a quick example of what can be done, check bin/unidiff file.
+
+
+References
+----------
+
+ * http://en.wikipedia.org/wiki/Diff_utility
+ * http://www.artima.com/weblogs/viewpost.jsp?thread=164293
