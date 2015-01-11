@@ -71,6 +71,16 @@ information from diff data (a file, or stdin). For example:
     Total: 6 addition(s), 0 deletion(s)
 
 
+Reading local patch files
+-------------------------
+
+    >>> from unidiff import PatchSet
+    >>> with open('~/example.diff') as diff:
+    ...     patch = PatchSet(diff)
+    >>> patch
+    <PatchSet: [<PatchedFile: .gitignore>, <PatchedFile: unidiff/patch.py>, <PatchedFile: unidiff/utils.py>]>
+
+
 References
 ----------
 

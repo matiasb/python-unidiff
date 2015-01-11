@@ -29,3 +29,6 @@ from __future__ import unicode_literals
 
 class UnidiffParseError(Exception):
     """Exception when parsing the unified diff data."""
+
+class UnidiffIOError(TypeError):
+    """Exception when parsing from a non-IO object."""
