@@ -39,7 +39,7 @@ from unidiff.constants import (
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
 )
-from unidiff.errors import UnidiffParseError
+from unidiff.errors import UnidiffParseError, UnidiffIOError
 
 
 PY2 = sys.version_info[0] == 2
@@ -274,6 +274,9 @@ class PatchSet(list):
 
     def _parse(self, diff):
         current_file = None
+
+        if not hasattr(diff, 'next'):
+            raise UnidiffIOError('Expected a file-like diff object.')
 
         for line in diff:
             # check for source file header
