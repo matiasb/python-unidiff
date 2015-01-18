@@ -174,7 +174,7 @@ class PatchedFile(list):
         hunks = '\n'.join(unicode(hunk) for hunk in self)
         return source + target + hunks
 
-    def _parse_hunk(self, header, diff):
+    def _parse_hunk(self, header, diff, encoding):
         """Parse hunk details."""
         header_info = RE_HUNK_HEADER.match(header)
         hunk_info = header_info.groups()
@@ -184,6 +184,8 @@ class PatchedFile(list):
         target_line_no = hunk.target_start
 
         for line in diff:
+            if encoding is not None:
+                line = line.decode(encoding)
             valid_line = RE_HUNK_BODY_LINE.match(line)
             if not valid_line:
                 raise UnidiffParseError('Hunk diff line expected: %s' % line)
@@ -262,9 +264,10 @@ class PatchedFile(list):
 class PatchSet(list):
     """A list of PatchedFiles."""
 
-    def __init__(self, f):
+    def __init__(self, f, encoding=None):
         super(PatchSet, self).__init__()
-        self._parse(f)
+        # if encoding is None, assume we are reading unicode data
+        self._parse(f, encoding=encoding)
 
     def __repr__(self):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
@@ -272,10 +275,12 @@ class PatchSet(list):
     def __str__(self):
         return '\n'.join(unicode(patched_file) for patched_file in self)
 
-    def _parse(self, diff):
+    def _parse(self, diff, encoding):
         current_file = None
 
         for line in diff:
+            if encoding is not None:
+                line = line.decode(encoding)
             # check for source file header
             is_source_filename = RE_SOURCE_FILENAME.match(line)
             if is_source_filename:
@@ -303,7 +308,7 @@ class PatchSet(list):
             if is_hunk_header:
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
-                current_file._parse_hunk(line, diff)
+                current_file._parse_hunk(line, diff, encoding)
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING):

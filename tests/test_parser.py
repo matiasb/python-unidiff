@@ -39,10 +39,26 @@ class TestUnidiffParser(unittest.TestCase):
 
     def setUp(self):
         super(TestUnidiffParser, self).setUp()
-        samples_dir = os.path.dirname(os.path.realpath(__file__))
-        self.sample_file = os.path.join(samples_dir, 'samples/sample0.diff')
+        self.samples_dir = os.path.dirname(os.path.realpath(__file__))
+        self.sample_file = os.path.join(
+            self.samples_dir, 'samples/sample0.diff')
         self.sample_bad_file = os.path.join(
-            samples_dir, 'samples/sample1.diff')
+            self.samples_dir, 'samples/sample1.diff')
+
+    def test_missing_encoding(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        with open(utf8_file, 'r') as diff_file:
+            self.assertRaises(UnicodeDecodeError, PatchSet, diff_file)
+
+    def test_encoding_param(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8')
+
+        # 3 files updated by diff
+        self.assertEqual(len(res), 3)
+        added_unicode_line = res.added_files[0][0][1]
+        self.assertEqual(added_unicode_line.value, 'holá mundo!')
 
     def test_parse_sample(self):
         """Parse sample file."""
