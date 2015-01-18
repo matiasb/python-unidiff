@@ -31,6 +31,7 @@ import os.path
 import unittest
 
 from unidiff import PatchSet
+from unidiff.patch import PY2
 from unidiff.errors import UnidiffParseError
 
 
@@ -47,12 +48,16 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_missing_encoding(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
-        with open(utf8_file, 'r') as diff_file:
-            self.assertRaises(UnicodeDecodeError, PatchSet, diff_file)
+        # read bytes
+        with open(utf8_file, 'rb') as diff_file:
+            if PY2:
+                self.assertRaises(UnicodeDecodeError, PatchSet, diff_file)
+            else:
+                self.assertRaises(TypeError, PatchSet, diff_file)
 
     def test_encoding_param(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with open(utf8_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
         # 3 files updated by diff

@@ -18,7 +18,8 @@ Quick start
     >>> import urllib2
     >>> from unidiff import PatchSet
     >>> diff = urllib2.urlopen('https://github.com/matiasb/python-unidiff/pull/3.diff')
-    >>> patch = PatchSet(diff)
+    >>> encoding = diff.headers.getparam('charset')
+    >>> patch = PatchSet(diff, encoding=encoding)
     >>> patch
     <PatchSet: [<PatchedFile: .gitignore>, <PatchedFile: unidiff/patch.py>, <PatchedFile: unidiff/utils.py>]>
     >>> patch[0]
@@ -69,6 +70,37 @@ information from diff data (a file, or stdin). For example:
 
     1 modified file(s), 0 added file(s), 0 removed file(s)
     Total: 6 addition(s), 0 deletion(s)
+
+
+Load a local diff file
+----------------------
+
+To instantiate PatchSet from a local file, you can use:
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8')
+    >>> patch
+    <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
+
+Notice the (optional) encoding parameter. If not specified, unicode input will be expected. Or alternatively:
+
+    >>> import codecs
+    >>> from unidiff import PatchSet
+    >>> with codecs.open('tests/samples/bzr.diff', 'r', encoding='utf-8') as diff:
+    ...     patch = PatchSet(diff)
+    ...
+    >>> patch
+    <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
+
+Finally, you can also instantiate PatchSet passing any iterable (and encoding, if needed):
+
+    >>> from unidiff import PatchSet
+    >>> with open('tests/samples/bzr.diff', 'r') as diff:
+    ...     data = diff.readlines()
+    ...
+    >>> patch = PatchSet(data, encoding='utf-8')
+    >>> patch
+    <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
 
 References

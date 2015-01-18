@@ -266,8 +266,10 @@ class PatchSet(list):
 
     def __init__(self, f, encoding=None):
         super(PatchSet, self).__init__()
+        # make sure we pass an iterator object to parse
+        data = iter(f)
         # if encoding is None, assume we are reading unicode data
-        self._parse(f, encoding=encoding)
+        self._parse(data, encoding=encoding)
 
     def __repr__(self):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
