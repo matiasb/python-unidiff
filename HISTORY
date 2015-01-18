@@ -1,0 +1,14 @@
+History
+-------
+
+0.5.1 - 2015-01-18
+------------------
+
+* Added (optional) encoding parameter to PatchSet.
+* Added support to get any iterable as PatchSet diff argument.
+
+
+0.5 - 2014-12-14
+----------------
+
+* Release on PyPI.
