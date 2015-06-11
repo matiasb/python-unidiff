@@ -38,15 +38,16 @@ RE_TARGET_FILENAME = re.compile(
 RE_HUNK_HEADER = re.compile(
     r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?\ @@[ ]?(.*)")
 
-#   kept line (context)
-# + added line
-# - deleted line
-# \ No newline case (ignore)
-RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \+\\])(?P<value>.*)')
-
+#    kept line (context)
+# \n empty line (treat like context)
+# +  added line
+# -  deleted line
+# \  No newline case (ignore)
+RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \n\+\\])(?P<value>.*)')
 
 DEFAULT_ENCODING = 'UTF-8'
 
 LINE_TYPE_ADDED = '+'
 LINE_TYPE_REMOVED = '-'
 LINE_TYPE_CONTEXT = ' '
+LINE_TYPE_EMPTY = '\n'
