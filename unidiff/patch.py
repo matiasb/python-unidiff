@@ -99,8 +99,10 @@ class Hunk(list):
             src_len = 1
         if tgt_len is None:
             tgt_len = 1
+        self.source = []
         self.source_start = int(src_start)
         self.source_length = int(src_len)
+        self.target = []
         self.target_start = int(tgt_start)
         self.target_length = int(tgt_len)
         self.section_header = section_header
@@ -120,6 +122,18 @@ class Hunk(list):
         content = '\n'.join(unicode(line) for line in self)
         return head + content
 
+    def append(self, l):
+        """Append the line and keep track of how much more is needed."""
+        super(Hunk, self).append(l)
+        s = str(l)
+        if l.is_added:
+            self.target.append(s)
+        elif l.is_removed:
+            self.source.append(s)
+        elif l.is_context:
+            self.target.append(s)
+            self.source.append(s)
+
     def is_valid(self):
         """Check hunk header data matches entered lines info."""
         return (len(self.source) == self.source_length and
@@ -134,16 +148,6 @@ class Hunk(list):
     def removed(self):
         """Number of removed lines in the hunk."""
         return len([l for l in self if l.is_removed])
-
-    @property
-    def source(self):
-        """Hunk lines from source file as a list."""
-        return [str(l) for l in self.source_lines()]
-
-    @property
-    def target(self):
-        """Hunk lines from target file as a list."""
-        return [str(l) for l in self.target_lines()]
 
     def source_lines(self):
         """Hunk lines from source file (generator)."""
