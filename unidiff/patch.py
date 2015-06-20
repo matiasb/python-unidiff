@@ -321,9 +321,9 @@ class PatchSet(list):
                 current_file._parse_hunk(line, diff, encoding)
 
     @classmethod
-    def from_filename(cls, filename, encoding=DEFAULT_ENCODING):
+    def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None):
         """Return a PatchSet instance given a diff filename."""
-        with open_file(filename, 'r', encoding=encoding) as f:
+        with open_file(filename, 'r', encoding=encoding, errors=errors) as f:
             instance = cls(f)
         return instance
 
