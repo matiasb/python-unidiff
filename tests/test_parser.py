@@ -51,8 +51,11 @@ class TestUnidiffParser(unittest.TestCase):
         # read bytes
         with open(utf8_file, 'rb') as diff_file:
             if PY2:
-                self.assertRaises(UnicodeDecodeError, PatchSet, diff_file)
+                # parsing will work, but evaluating the diff/hunks will raise
+                patch = PatchSet(diff_file)
+                self.assertRaises(UnicodeDecodeError, str, patch)
             else:
+                # unicode expected
                 self.assertRaises(TypeError, PatchSet, diff_file)
 
     def test_encoding_param(self):

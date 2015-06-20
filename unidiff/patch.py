@@ -183,6 +183,8 @@ class PatchedFile(list):
 
         source_line_no = hunk.source_start
         target_line_no = hunk.target_start
+        expected_source_end = source_line_no + hunk.source_length
+        expected_target_end = target_line_no + hunk.target_length
 
         for line in diff:
             if encoding is not None:
@@ -213,8 +215,9 @@ class PatchedFile(list):
             if original_line:
                 hunk.append(original_line)
 
-            # check hunk len(old_lines) and len(new_lines) are ok
-            if hunk.is_valid():
+            # if hunk source/target lengths are ok, hunk is complete
+            if (source_line_no == expected_source_end
+                    and target_line_no == expected_target_end):
                 break
 
         self.append(hunk)
