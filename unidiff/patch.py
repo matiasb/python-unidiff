@@ -33,6 +33,7 @@ from unidiff.constants import (
     DEFAULT_ENCODING,
     LINE_TYPE_ADDED,
     LINE_TYPE_CONTEXT,
+    LINE_TYPE_EMPTY,
     LINE_TYPE_REMOVED,
     RE_HUNK_BODY_LINE,
     RE_HUNK_HEADER,
@@ -200,6 +201,13 @@ class PatchedFile(list):
                 original_line.source_line_no = source_line_no
                 source_line_no += 1
             elif line_type == LINE_TYPE_CONTEXT:
+                original_line.target_line_no = target_line_no
+                target_line_no += 1
+                original_line.source_line_no = source_line_no
+                source_line_no += 1
+            elif line_type == LINE_TYPE_EMPTY:
+                original_line.line_type = LINE_TYPE_CONTEXT
+                original_line.value = LINE_TYPE_EMPTY
                 original_line.target_line_no = target_line_no
                 target_line_no += 1
                 original_line.source_line_no = source_line_no
