@@ -192,6 +192,8 @@ class PatchedFile(list):
                 raise UnidiffParseError('Hunk diff line expected: %s' % line)
 
             line_type = valid_line.group('line_type')
+            if line_type == LINE_TYPE_EMPTY:
+                line_type = LINE_TYPE_CONTEXT
             value = valid_line.group('value')
             original_line = Line(value, line_type=line_type)
             if line_type == LINE_TYPE_ADDED:
@@ -201,13 +203,6 @@ class PatchedFile(list):
                 original_line.source_line_no = source_line_no
                 source_line_no += 1
             elif line_type == LINE_TYPE_CONTEXT:
-                original_line.target_line_no = target_line_no
-                target_line_no += 1
-                original_line.source_line_no = source_line_no
-                source_line_no += 1
-            elif line_type == LINE_TYPE_EMPTY:
-                original_line.line_type = LINE_TYPE_CONTEXT
-                original_line.value = LINE_TYPE_EMPTY
                 original_line.target_line_no = target_line_no
                 target_line_no += 1
                 original_line.source_line_no = source_line_no
