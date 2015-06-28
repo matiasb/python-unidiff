@@ -117,6 +117,61 @@ class TestUnidiffParser(unittest.TestCase):
         with open(self.sample_bad_file) as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
+    def test_diff_lines_linenos(self):
+        with open(self.sample_file, 'rb') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8')
+
+        target_line_nos = []
+        source_line_nos = []
+        diff_line_nos = []
+        for diff_file in res:
+            for hunk in diff_file:
+                for line in hunk:
+                    target_line_nos.append(line.target_line_no)
+                    source_line_nos.append(line.source_line_no)
+                    diff_line_nos.append(line.diff_line_no)
+
+        expected_target_line_nos = [
+            # File: 1, Hunk: 1
+            1, 2, 3, 4, 5, 6, 7, 8, 9,
+            # File: 1, Hunk: 2
+            11, 12, 13, None, None, None, None, None, None, None, 14, 15, 16, None, 17, 18, 19, 20,
+            # File: 1, Hunk: 3
+            22, 23, 24, 25, 26, 27, 28,
+            # File: 2, Hunk 1
+            1, 2, 3, 4, 5, 6, 7, 8, 9,
+            # File: 3, Hunk 1
+            None, None, None, None, None, None, None, None, None,
+        ]
+        expected_source_line_nos = [
+            # File: 1, Hunk: 1
+            None, None, None, None, None, None, 1, 2, 3,
+            # File: 1, Hunk: 2
+            5, 6, 7, 8, 9, 10, 11, 12, 13, 14, None, 15, 16, 17, None, 18, 19, 20,
+            # File: 1, Hunk: 3
+            22, 23, 24, None, None, None, None,
+            # File: 2, Hunk 1
+            None, None, None, None, None, None, None, None, None,
+            # File: 3, Hunk 1
+            1, 2, 3, 4, 5, 6, 7, 8, 9,
+        ]
+        expected_diff_line_nos = [
+            # File: 1, Hunk: 1
+            4, 5, 6, 7, 8, 9, 10, 11, 12,
+            # File: 1, Hunk: 2
+            14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            # File: 1, Hunk: 3
+            33, 34, 35, 36, 37, 38, 39,
+            # File: 2, Hunk 1
+            43, 44, 45, 46, 47, 48, 49, 50, 51,
+            # File: 3, Hunk 1
+            55, 56, 57, 58, 59, 60, 61, 62, 63,
+        ]
+
+        self.assertEqual(target_line_nos, expected_target_line_nos)
+        self.assertEqual(source_line_nos, expected_source_line_nos)
+        self.assertEqual(diff_line_nos, expected_diff_line_nos)
+
 
 class TestVCSSamples(unittest.TestCase):
     """Tests for real examples from VCS."""
