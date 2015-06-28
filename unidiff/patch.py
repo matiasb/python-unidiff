@@ -64,10 +64,11 @@ class Line(object):
     """A diff line."""
 
     def __init__(self, value, line_type,
-                 source_line_no=None, target_line_no=None):
+                 source_line_no=None, target_line_no=None, diff_line_no=None):
         super(Line, self).__init__()
         self.source_line_no = source_line_no
         self.target_line_no = target_line_no
+        self.diff_line_no = diff_line_no
         self.line_type = line_type
         self.value = value
 
@@ -184,7 +185,7 @@ class PatchedFile(list):
         expected_source_end = source_line_no + hunk.source_length
         expected_target_end = target_line_no + hunk.target_length
 
-        for line in diff:
+        for diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
             valid_line = RE_HUNK_BODY_LINE.match(line)
@@ -211,6 +212,7 @@ class PatchedFile(list):
                 original_line = None
 
             if original_line:
+                original_line.diff_line_no = diff_line_no
                 hunk.append(original_line)
 
             # if hunk source/target lengths are ok, hunk is complete
@@ -284,7 +286,8 @@ class PatchSet(list):
     def _parse(self, diff, encoding):
         current_file = None
 
-        for line in diff:
+        diff = enumerate(diff, 1)
+        for unused_diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
             # check for source file header

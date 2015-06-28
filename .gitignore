@@ -1,6 +1,9 @@
 # Python
 *.py[cod]
 __pycache__
+build
+dist
+unidiff.egg-info
 
 # Vim
 *.swp
