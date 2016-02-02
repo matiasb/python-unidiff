@@ -1,6 +1,16 @@
 History
 -------
 
+0.5.2 - 2016-02-02
+------------------
+
+* Added diff line number to Line metadata.
+* Optimizations for large hunks.
+* Fix for git empty new lines.
+* Added (optional) errors parameter to PatchSet.from_filename,
+to specify how to handle encoding errors.
+
+
 0.5.1 - 2015-01-18
 ------------------
 
