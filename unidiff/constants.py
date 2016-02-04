@@ -44,6 +44,8 @@ RE_HUNK_HEADER = re.compile(
 # -  deleted line
 # \  No newline case (ignore)
 RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \n\+\\])(?P<value>.*)')
+RE_GIT_INDEX = re.compile(
+    r'^index (?P<revision_before>[0-9a-f]{5,40})\.\.(?P<revision_after>[0-9a-f]{5,40})')
 
 DEFAULT_ENCODING = 'UTF-8'
 
