@@ -212,3 +212,10 @@ class TestVCSSamples(unittest.TestCase):
             self.assertEqual(len(modified_files[0]), 1)
             self.assertEqual(modified_files[0].added, 3)
             self.assertEqual(modified_files[0].removed, 1)
+
+            if fname == 'git.diff':
+                self.assertEqual(added_files[0].revision_before, '0000000')
+                self.assertEqual(added_files[0].revision_after, '9b710f3')
+
+                self.assertEqual(modified_files[0].revision_before, 'c7921f5')
+                self.assertEqual(modified_files[0].revision_after, '8946660')

@@ -39,6 +39,7 @@ from unidiff.constants import (
     RE_HUNK_HEADER,
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
+    RE_GIT_INDEX,
 )
 from unidiff.errors import UnidiffParseError
 
@@ -73,7 +74,7 @@ class Line(object):
         self.value = value
 
     def __repr__(self):
-        return make_str("<Line: %s>") % make_str(self)
+        return make_str("<Line: %s>") % make_str(self.__str__())
 
     def __str__(self):
         return "%s%s" % (self.line_type, self.value)
@@ -158,12 +159,15 @@ class PatchedFile(list):
     """Patch updated file, it is a list of Hunks."""
 
     def __init__(self, source='', target='',
-                 source_timestamp=None, target_timestamp=None):
+                 source_timestamp=None, target_timestamp=None,
+                 revision_before=None, revision_after=None):
         super(PatchedFile, self).__init__()
         self.source_file = source
         self.source_timestamp = source_timestamp
         self.target_file = target
         self.target_timestamp = target_timestamp
+        self.revision_before = revision_before
+        self.revision_after = revision_after
 
     def __repr__(self):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
@@ -285,11 +289,21 @@ class PatchSet(list):
 
     def _parse(self, diff, encoding):
         current_file = None
+        revision_before = None
+        revision_after = None
 
         diff = enumerate(diff, 1)
         for unused_diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
+
+            # check for git index
+            is_git_index = RE_GIT_INDEX.match(line)
+            if is_git_index:
+                revision_before = is_git_index.group('revision_before')
+                revision_after = is_git_index.group('revision_after')
+                continue
+
             # check for source file header
             is_source_filename = RE_SOURCE_FILENAME.match(line)
             if is_source_filename:
@@ -308,8 +322,12 @@ class PatchSet(list):
                 target_timestamp = is_target_filename.group('timestamp')
                 # add current file to PatchSet
                 current_file = PatchedFile(source_file, target_file,
-                                           source_timestamp, target_timestamp)
+                                           source_timestamp, target_timestamp,
+                                           revision_before, revision_after)
                 self.append(current_file)
+                # reset revisions
+                revision_before = None
+                revision_after = None
                 continue
 
             # check for hunk header
