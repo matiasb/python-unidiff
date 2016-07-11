@@ -158,12 +158,14 @@ class PatchedFile(list):
     """Patch updated file, it is a list of Hunks."""
 
     def __init__(self, source='', target='',
-                 source_timestamp=None, target_timestamp=None):
+                 source_timestamp=None, target_timestamp=None,
+                 is_renamed_file=False):
         super(PatchedFile, self).__init__()
         self.source_file = source
         self.source_timestamp = source_timestamp
         self.target_file = target
         self.target_timestamp = target_timestamp
+        self.is_renamed_file = is_renamed_file
 
     def __repr__(self):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
@@ -287,6 +289,8 @@ class PatchSet(list):
         current_file = None
 
         diff = enumerate(diff, 1)
+        to_rename_file = None
+        renamed_file = None
         for unused_diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
@@ -295,6 +299,9 @@ class PatchSet(list):
             if is_source_filename:
                 source_file = is_source_filename.group('filename')
                 source_timestamp = is_source_filename.group('timestamp')
+                if not source_file:
+                    to_rename_file = is_source_filename.group('renamefile')
+
                 # reset current file
                 current_file = None
                 continue
@@ -306,9 +313,33 @@ class PatchSet(list):
                     raise UnidiffParseError('Target without source: %s' % line)
                 target_file = is_target_filename.group('filename')
                 target_timestamp = is_target_filename.group('timestamp')
+                if not target_file:
+                    renamed_file = is_target_filename.group('renamefile')
+
+                if not target_file:
+                    continue
+
                 # add current file to PatchSet
+                to_rename = False
+                if to_rename_file:
+                    if renamed_file is None:
+                        raise UnidiffParseError('Rename target without source: %s' %
+                                                renamed_file)
+
+                    a = source_file.replace("a/", "")
+                    b = target_file.replace("b/", "")
+                    to_rename = a == to_rename_file and b == renamed_file
+                    if not to_rename:
+                        # Add previous file to rename with empty content
+                        current_file = PatchedFile(to_rename_file, renamed_file,
+                                                   is_renamed_file=True)
+
+                    to_rename_file = None
+                    renamed_file = None
+
                 current_file = PatchedFile(source_file, target_file,
-                                           source_timestamp, target_timestamp)
+                                           source_timestamp, target_timestamp,
+                                           to_rename)
                 self.append(current_file)
                 continue
 
@@ -318,6 +349,14 @@ class PatchSet(list):
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
                 current_file._parse_hunk(line, diff, encoding)
+
+        # Handle renaming one signle file without any change
+        if to_rename_file:
+            if renamed_file is None:
+                raise UnidiffParseError('Rename target without source: %s' %
+                                        renamed_file)
+
+            self.append(PatchedFile(to_rename_file, renamed_file, is_renamed_file=True))
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None):

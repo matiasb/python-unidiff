@@ -176,12 +176,15 @@ class TestVCSSamples(unittest.TestCase):
 
     samples = ['bzr.diff', 'git.diff', 'hg.diff', 'svn.diff']
 
-    def test_samples(self):
+    def parse_sample(self, sample_name):
         tests_dir = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.join(tests_dir, 'samples', sample_name)
+        with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
+            return PatchSet(diff_file)
+
+    def test_samples(self):
         for fname in self.samples:
-            file_path = os.path.join(tests_dir, 'samples', fname)
-            with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
-                res = PatchSet(diff_file)
+            res = self.parse_sample(fname)
 
             # 3 files updated by diff
             self.assertEqual(len(res), 3)
@@ -212,3 +215,13 @@ class TestVCSSamples(unittest.TestCase):
             self.assertEqual(len(modified_files[0]), 1)
             self.assertEqual(modified_files[0].added, 3)
             self.assertEqual(modified_files[0].removed, 1)
+
+    def test_renaming(self):
+        res = self.parse_sample("rename_git.diff")
+
+        self.assertEqual(len(res), 1)
+
+        patch = res[0]
+        self.assertTrue(patch.is_renamed_file)
+        self.assertEqual(patch.added, 1)
+        self.assertEqual(patch.removed, 1)
