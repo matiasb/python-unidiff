@@ -158,12 +158,14 @@ class PatchedFile(list):
     """Patch updated file, it is a list of Hunks."""
 
     def __init__(self, source='', target='',
-                 source_timestamp=None, target_timestamp=None):
+                 source_timestamp=None, target_timestamp=None,
+                 is_renamed_file=False):
         super(PatchedFile, self).__init__()
         self.source_file = source
         self.source_timestamp = source_timestamp
         self.target_file = target
         self.target_timestamp = target_timestamp
+        self.is_renamed_file = is_renamed_file
 
     def __repr__(self):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
@@ -295,6 +297,8 @@ class PatchSet(list):
             if is_source_filename:
                 source_file = is_source_filename.group('filename')
                 source_timestamp = is_source_filename.group('timestamp')
+                if source_file is None:
+                    source_file = is_source_filename.group('renamefile')
                 # reset current file
                 current_file = None
                 continue
@@ -302,13 +306,18 @@ class PatchSet(list):
             # check for target file header
             is_target_filename = RE_TARGET_FILENAME.match(line)
             if is_target_filename:
+                is_renamed = False
                 if current_file is not None:
                     raise UnidiffParseError('Target without source: %s' % line)
                 target_file = is_target_filename.group('filename')
+                if target_file is None:
+                    target_file = is_target_filename.group('renamefile')
+                    is_renamed = True
                 target_timestamp = is_target_filename.group('timestamp')
                 # add current file to PatchSet
                 current_file = PatchedFile(source_file, target_file,
-                                           source_timestamp, target_timestamp)
+                                           source_timestamp, target_timestamp,
+                                           is_renamed)
                 self.append(current_file)
                 continue
 

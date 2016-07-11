@@ -30,9 +30,11 @@ import re
 
 
 RE_SOURCE_FILENAME = re.compile(
-    r'^--- (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
+    r'^--- (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?'
+    '|^rename from (?P<renamefile>[^\t\n]+)$')
 RE_TARGET_FILENAME = re.compile(
-    r'^\+\+\+ (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
+    r'^\+\+\+ (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?'
+    '|^rename to (?P<renamefile>[^\t\n]+)')
 
 # @@ (source offset, length) (target offset, length) @@ (section header)
 RE_HUNK_HEADER = re.compile(
