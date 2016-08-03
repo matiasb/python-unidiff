@@ -34,6 +34,8 @@ from unidiff import PatchSet
 from unidiff.patch import PY2
 from unidiff.errors import UnidiffParseError
 
+if not PY2:
+    unicode = str
 
 class TestUnidiffParser(unittest.TestCase):
     """Tests for Unified Diff Parser."""
@@ -64,7 +66,24 @@ class TestUnidiffParser(unittest.TestCase):
         # 3 files updated by diff
         self.assertEqual(len(res), 3)
         added_unicode_line = res.added_files[0][0][1]
-        self.assertEqual(added_unicode_line.value, 'holá mundo!')
+        self.assertEqual(added_unicode_line.value, 'holá mundo!\n')
+
+    def test_preserve_dos_line_endings(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample4.diff')
+        with open(utf8_file, 'rb') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8')
+
+        # 3 files updated by diff
+        self.assertEqual(len(res), 3)
+        added_unicode_line = res.added_files[0][0][1]
+        self.assertEqual(added_unicode_line.value, 'holá mundo!\r\n')
+
+    def test_print_hunks_without_gaps(self):
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+            res = PatchSet(diff_file)
+        lines = unicode(res).splitlines()
+        self.assertEqual(lines[12], '@@ -5,16 +11,10 @@ ')
+        self.assertEqual(lines[31], '@@ -22,3 +22,7 @@ ')
 
     def test_parse_sample(self):
         """Parse sample file."""

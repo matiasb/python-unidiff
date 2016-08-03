@@ -123,7 +123,7 @@ class Hunk(list):
         head = "@@ -%d,%d +%d,%d @@ %s\n" % (
             self.source_start, self.source_length,
             self.target_start, self.target_length, self.section_header)
-        content = '\n'.join(unicode(line) for line in self)
+        content = ''.join(unicode(line) for line in self)
         return head + content
 
     def append(self, line):
@@ -171,7 +171,7 @@ class PatchedFile(list):
     def __str__(self):
         source = "--- %s\n" % self.source_file
         target = "+++ %s\n" % self.target_file
-        hunks = '\n'.join(unicode(hunk) for hunk in self)
+        hunks = ''.join(unicode(hunk) for hunk in self)
         return source + target + hunks
 
     def _parse_hunk(self, header, diff, encoding):

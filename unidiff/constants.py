@@ -43,7 +43,7 @@ RE_HUNK_HEADER = re.compile(
 # +  added line
 # -  deleted line
 # \  No newline case (ignore)
-RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \n\+\\])(?P<value>.*)')
+RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \n\+\\])(?P<value>.*)', re.DOTALL)
 
 DEFAULT_ENCODING = 'UTF-8'
 
