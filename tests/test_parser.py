@@ -68,6 +68,20 @@ class TestUnidiffParser(unittest.TestCase):
         added_unicode_line = res.added_files[0][0][1]
         self.assertEqual(added_unicode_line.value, 'holá mundo!\n')
 
+    def test_no_newline_at_end_of_file(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        with open(utf8_file, 'rb') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8')
+
+        # 3 files updated by diff
+        self.assertEqual(len(res), 3)
+        added_unicode_line = res.added_files[0][0][4]
+        self.assertEqual(added_unicode_line.line_type, '\\')
+        self.assertEqual(added_unicode_line.value, ' No newline at end of file\n')
+        added_unicode_line = res.modified_files[0][0][8]
+        self.assertEqual(added_unicode_line.line_type, '\\')
+        self.assertEqual(added_unicode_line.value, ' No newline at end of file\n')
+
     def test_preserve_dos_line_endings(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample4.diff')
         with open(utf8_file, 'rb') as diff_file:
