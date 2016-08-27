@@ -35,10 +35,13 @@ from unidiff.constants import (
     LINE_TYPE_CONTEXT,
     LINE_TYPE_EMPTY,
     LINE_TYPE_REMOVED,
+    LINE_TYPE_NO_NEWLINE,
+    LINE_VALUE_NO_NEWLINE,
     RE_HUNK_BODY_LINE,
     RE_HUNK_HEADER,
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
+    RE_NO_NEWLINE_MARKER,
 )
 from unidiff.errors import UnidiffParseError
 
@@ -123,7 +126,7 @@ class Hunk(list):
         head = "@@ -%d,%d +%d,%d @@ %s\n" % (
             self.source_start, self.source_length,
             self.target_start, self.target_length, self.section_header)
-        content = '\n'.join(unicode(line) for line in self)
+        content = ''.join(unicode(line) for line in self)
         return head + content
 
     def append(self, line):
@@ -171,7 +174,7 @@ class PatchedFile(list):
     def __str__(self):
         source = "--- %s\n" % self.source_file
         target = "+++ %s\n" % self.target_file
-        hunks = '\n'.join(unicode(hunk) for hunk in self)
+        hunks = ''.join(unicode(hunk) for hunk in self)
         return source + target + hunks
 
     def _parse_hunk(self, header, diff, encoding):
@@ -208,6 +211,8 @@ class PatchedFile(list):
                 target_line_no += 1
                 original_line.source_line_no = source_line_no
                 source_line_no += 1
+            elif line_type == LINE_TYPE_NO_NEWLINE:
+                pass
             else:
                 original_line = None
 
@@ -221,6 +226,12 @@ class PatchedFile(list):
                 break
 
         self.append(hunk)
+
+    def _add_no_newline_marker_to_last_hunk(self):
+        if not self:
+            raise UnidiffParseError('Unexpected marker:' + LINE_VALUE_NO_NEWLINE)
+        last_hunk = self[-1]
+        last_hunk.append(Line(LINE_VALUE_NO_NEWLINE + '\n', line_type=LINE_TYPE_NO_NEWLINE))
 
     @property
     def path(self):
@@ -318,6 +329,13 @@ class PatchSet(list):
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
                 current_file._parse_hunk(line, diff, encoding)
+
+            # check for no newline marker
+            is_no_newline = RE_NO_NEWLINE_MARKER.match(line)
+            if is_no_newline:
+                if current_file is None:
+                    raise UnidiffParseError('Unexpected marker: %s' % line)
+                current_file._add_no_newline_marker_to_last_hunk()
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None):
