@@ -340,3 +340,13 @@ class PatchSet(list):
     def modified_files(self):
         """Return patch modified files as a list."""
         return [f for f in self if f.is_modified_file]
+
+    @property
+    def added(self):
+        """Return the patch total added lines."""
+        return sum([f.added for f in self])
+
+    @property
+    def removed(self):
+        """Return the patch total removed lines."""
+        return sum([f.removed for f in self])

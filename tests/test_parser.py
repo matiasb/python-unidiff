@@ -110,6 +110,9 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[2].is_removed_file)
         self.assertFalse(res[2].is_added_file)
 
+        self.assertEqual(res.added, 21)
+        self.assertEqual(res.removed, 17)
+
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
@@ -212,3 +215,6 @@ class TestVCSSamples(unittest.TestCase):
             self.assertEqual(len(modified_files[0]), 1)
             self.assertEqual(modified_files[0].added, 3)
             self.assertEqual(modified_files[0].removed, 1)
+
+            self.assertEqual(res.added, 7)
+            self.assertEqual(res.removed, 4)
