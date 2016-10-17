@@ -28,6 +28,7 @@ from __future__ import unicode_literals
 
 import codecs
 import sys
+from io import StringIO
 
 from unidiff.constants import (
     DEFAULT_ENCODING,
@@ -287,6 +288,10 @@ class PatchSet(list):
         data = iter(f)
         # if encoding is None, assume we are reading unicode data
         self._parse(data, encoding=encoding)
+        
+    @classmethod
+    def from_string(cls, s, *args, **kwargs):
+        return cls(StringIO(s), *args, **kwargs)
 
     def __repr__(self):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
