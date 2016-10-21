@@ -55,3 +55,7 @@ LINE_TYPE_CONTEXT = ' '
 LINE_TYPE_EMPTY = '\n'
 LINE_TYPE_NO_NEWLINE = '\\'
 LINE_VALUE_NO_NEWLINE = ' No newline at end of file'
+
+ENCODE_FALLBACK_BLANK = 'ignore'
+ENCODE_FALLBACK_HEX = 'backslashreplace'
+ENCODE_FALLBACK_XML_CHAR = 'xmlcharrefreplace'
