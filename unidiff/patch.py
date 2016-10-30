@@ -288,7 +288,7 @@ class PatchSet(list):
         data = iter(f)
         # if encoding is None, assume we are reading unicode data
         self._parse(data, encoding=encoding)
-        
+
     @classmethod
     def from_string(cls, s, *args, **kwargs):
         return cls(StringIO(s), *args, **kwargs)
