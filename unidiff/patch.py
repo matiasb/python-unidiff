@@ -289,10 +289,6 @@ class PatchSet(list):
         # if encoding is None, assume we are reading unicode data
         self._parse(data, encoding=encoding)
 
-    @classmethod
-    def from_string(cls, s, *args, **kwargs):
-        return cls(StringIO(s), *args, **kwargs)
-
     def __repr__(self):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
 
@@ -348,6 +344,10 @@ class PatchSet(list):
         with open_file(filename, 'r', encoding=encoding, errors=errors) as f:
             instance = cls(f)
         return instance
+
+    @classmethod
+    def from_string(cls, s, *args, **kwargs):
+        return cls(StringIO(s), *args, **kwargs)
 
     @property
     def added_files(self):
