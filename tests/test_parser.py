@@ -40,6 +40,32 @@ if not PY2:
 TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
 SAMPLES_DIR = os.path.join(TESTS_DIR, "samples")
 
+class TestPatchSet(unittests.Testcase):
+    """Tests for the PatchSet class."""
+
+    samples_dir = SAMPLES_DIR
+
+    def setUp(self):
+        super(TestPatchedFile, self).setUp()
+        self.sample_filename = os.path.join(self.samples_dir, 'sample0.diff')
+        with open(self.sample_filename) as diff_file:
+            self.sample_text = diff_file.read()
+
+    def test_from_filename(self):
+        """Test the PatchedFile.from_filename classmethod"""
+        with open(self.sample_filename) as diff_file:
+            expected = PatchSet(diff_file):
+        actual = PatchSet.from_filename(self.sample_filename)
+        self.assertEqual(expected, actual)
+
+    def test_from_string(self):
+        """Test the PatchedFile.from_string classmethod"""
+        with open(self.sample_filename) as diff_file:
+            expected = PatchSet(diff_file)
+        actual = PatchSet.from_string(self.sample_text)
+        self.assertEqual(expected, actual)
+
+
 class TestUnidiffParser(unittest.TestCase):
     """Tests for Unified Diff Parser."""
 
