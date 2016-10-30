@@ -63,7 +63,6 @@ class TestPatchSet(unittest.TestCase):
         with open(self.sample_filename) as diff_file:
             expected = PatchSet(diff_file)
         actual = PatchSet.from_string(self.sample_text)
-        import pdb; pdb.set_trace()  # XXX BREAKPOINT
         self.assertEqual(expected, actual)
 
 
