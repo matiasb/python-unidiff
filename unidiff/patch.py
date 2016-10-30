@@ -347,7 +347,7 @@ class PatchSet(list):
 
     @classmethod
     def from_string(cls, s, *args, **kwargs):
-        return cls(StringIO(s), *args, **kwargs)
+        return cls(StringIO(unicode(s)), *args, **kwargs)
 
     @property
     def added_files(self):
