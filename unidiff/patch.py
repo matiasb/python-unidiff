@@ -81,6 +81,13 @@ class Line(object):
     def __str__(self):
         return "%s%s" % (self.line_type, self.value)
 
+    def __eq__(self, other):
+        return (self.source_line_no == other.source_line_no and
+                self.target_line_no == other.target_line_no and
+                self.diff_line_no == other.diff_line_no and
+                self.line_type == other.line_type and
+                self.value == other.value)
+
     @property
     def is_added(self):
         return self.line_type == LINE_TYPE_ADDED
@@ -221,17 +228,19 @@ class PatchedFile(list):
                 hunk.append(original_line)
 
             # if hunk source/target lengths are ok, hunk is complete
-            if (source_line_no == expected_source_end
-                    and target_line_no == expected_target_end):
+            if (source_line_no == expected_source_end and
+                    target_line_no == expected_target_end):
                 break
 
         self.append(hunk)
 
     def _add_no_newline_marker_to_last_hunk(self):
         if not self:
-            raise UnidiffParseError('Unexpected marker:' + LINE_VALUE_NO_NEWLINE)
+            raise UnidiffParseError(
+                'Unexpected marker:' + LINE_VALUE_NO_NEWLINE)
         last_hunk = self[-1]
-        last_hunk.append(Line(LINE_VALUE_NO_NEWLINE + '\n', line_type=LINE_TYPE_NO_NEWLINE))
+        last_hunk.append(
+            Line(LINE_VALUE_NO_NEWLINE + '\n', line_type=LINE_TYPE_NO_NEWLINE))
 
     @property
     def path(self):

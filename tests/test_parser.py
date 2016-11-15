@@ -146,6 +146,20 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(res.added, 21)
         self.assertEqual(res.removed, 17)
 
+    def test_patchset_compare(self):
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+            ps1 = PatchSet(diff_file)
+
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+            ps2 = PatchSet(diff_file)
+
+        other_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        with open(other_file, 'rb') as diff_file:
+            ps3 = PatchSet(diff_file, encoding='utf-8')
+
+        self.assertEqual(ps1, ps2)
+        self.assertNotEqual(ps1, ps3)
+
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
