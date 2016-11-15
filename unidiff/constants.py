@@ -43,7 +43,8 @@ RE_HUNK_HEADER = re.compile(
 # +  added line
 # -  deleted line
 # \  No newline case
-RE_HUNK_BODY_LINE = re.compile(r'^(?P<line_type>[- \n\+\\])(?P<value>.*)', re.DOTALL)
+RE_HUNK_BODY_LINE = re.compile(
+    r'^(?P<line_type>[- \n\+\\])(?P<value>.*)', re.DOTALL)
 
 RE_NO_NEWLINE_MARKER = re.compile(r'^\\ No newline at end of file')
 
