@@ -76,7 +76,7 @@ class Line(object):
         self.value = value
 
     def __repr__(self):
-        return make_str("<Line: %s>") % make_str(self)
+        return make_str("<Line: %s%s>") % (self.line_type, self.value)
 
     def __str__(self):
         return "%s%s" % (self.line_type, self.value)
