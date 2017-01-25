@@ -350,7 +350,7 @@ class PatchSet(list):
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None):
         """Return a PatchSet instance given a diff filename."""
         with open_file(filename, 'r', encoding=encoding, errors=errors) as f:
-            instance = cls(f)
+            instance = cls(f, encoding)
         return instance
 
     @property
