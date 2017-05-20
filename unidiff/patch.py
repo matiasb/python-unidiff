@@ -48,6 +48,7 @@ from unidiff.errors import UnidiffParseError
 
 PY2 = sys.version_info[0] == 2
 if PY2:
+    from StringIO import StringIO
     open_file = codecs.open
     make_str = lambda x: x.encode(DEFAULT_ENCODING)
 
@@ -56,6 +57,7 @@ if PY2:
         cls.__str__ = lambda x: x.__unicode__().encode(DEFAULT_ENCODING)
         return cls
 else:
+    from io import StringIO
     open_file = open
     make_str = str
     implements_to_string = lambda x: x
@@ -352,6 +354,14 @@ class PatchSet(list):
         with open_file(filename, 'r', encoding=encoding, errors=errors) as f:
             instance = cls(f)
         return instance
+
+    @classmethod
+    def from_string(cls, data, encoding=None, errors='strict'):
+        """Return a PatchSet instance given a diff string."""
+        if encoding is not None:
+            # if encoding is given, assume bytes and decode
+            data = unicode(data, encoding=encoding, errors=errors)
+        return cls(StringIO(data))
 
     @property
     def added_files(self):
