@@ -16,7 +16,7 @@ setup(
     author_email='mbordese@gmail.com',
     url='http://github.com/matiasb/python-unidiff',
     license='MIT',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     scripts=['bin/unidiff'],
     classifiers=[
         'Intended Audience :: Developers',
