@@ -28,6 +28,7 @@ from __future__ import unicode_literals
 
 import codecs
 import sys
+from io import StringIO
 
 from unidiff.constants import (
     DEFAULT_ENCODING,
@@ -352,6 +353,10 @@ class PatchSet(list):
         with open_file(filename, 'r', encoding=encoding, errors=errors) as f:
             instance = cls(f)
         return instance
+
+    @classmethod
+    def from_string(cls, s, *args, **kwargs):
+        return cls(StringIO(unicode(s)), *args, **kwargs)
 
     @property
     def added_files(self):

@@ -37,19 +37,47 @@ from unidiff.errors import UnidiffParseError
 if not PY2:
     unicode = str
 
+TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
+SAMPLES_DIR = os.path.join(TESTS_DIR, "samples")
+
+class TestPatchSet(unittest.TestCase):
+    """Tests for the PatchSet class."""
+
+    samples_dir = SAMPLES_DIR
+
+    def setUp(self):
+        super(TestPatchSet, self).setUp()
+        self.sample_filename = os.path.join(self.samples_dir, 'sample0.diff')
+        with open(self.sample_filename) as diff_file:
+            self.sample_text = diff_file.read()
+
+    def test_from_filename(self):
+        """Test the PatchSet.from_filename classmethod"""
+        with open(self.sample_filename) as diff_file:
+            expected = PatchSet(diff_file)
+        actual = PatchSet.from_filename(self.sample_filename)
+        self.assertEqual(expected, actual)
+
+    def test_from_string(self):
+        """Test the PatchSet.from_string classmethod"""
+        with open(self.sample_filename) as diff_file:
+            expected = PatchSet(diff_file)
+        actual = PatchSet.from_string(self.sample_text)
+        self.assertEqual(expected, actual)
+
+
 class TestUnidiffParser(unittest.TestCase):
     """Tests for Unified Diff Parser."""
 
+    samples_dir = SAMPLES_DIR
+
     def setUp(self):
         super(TestUnidiffParser, self).setUp()
-        self.samples_dir = os.path.dirname(os.path.realpath(__file__))
-        self.sample_file = os.path.join(
-            self.samples_dir, 'samples/sample0.diff')
-        self.sample_bad_file = os.path.join(
-            self.samples_dir, 'samples/sample1.diff')
+        self.sample_file = os.path.join(self.samples_dir, 'sample0.diff')
+        self.sample_bad_file = os.path.join(self.samples_dir, 'sample1.diff')
 
     def test_missing_encoding(self):
-        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        utf8_file = os.path.join(self.samples_dir, 'sample3.diff')
         # read bytes
         with open(utf8_file, 'rb') as diff_file:
             if PY2:
@@ -59,7 +87,7 @@ class TestUnidiffParser(unittest.TestCase):
                 self.assertRaises(TypeError, PatchSet, diff_file)
 
     def test_encoding_param(self):
-        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        utf8_file = os.path.join(self.samples_dir, 'sample3.diff')
         with open(utf8_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
@@ -69,7 +97,7 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(added_unicode_line.value, 'holá mundo!\n')
 
     def test_no_newline_at_end_of_file(self):
-        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        utf8_file = os.path.join(self.samples_dir, 'sample3.diff')
         with open(utf8_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
@@ -83,7 +111,7 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(added_unicode_line.value, ' No newline at end of file\n')
 
     def test_preserve_dos_line_endings(self):
-        utf8_file = os.path.join(self.samples_dir, 'samples/sample4.diff')
+        utf8_file = os.path.join(self.samples_dir, 'sample4.diff')
         with open(utf8_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
@@ -224,12 +252,12 @@ class TestUnidiffParser(unittest.TestCase):
 class TestVCSSamples(unittest.TestCase):
     """Tests for real examples from VCS."""
 
+    samples_dir = SAMPLES_DIR
     samples = ['bzr.diff', 'git.diff', 'hg.diff', 'svn.diff']
 
     def test_samples(self):
-        tests_dir = os.path.dirname(os.path.realpath(__file__))
         for fname in self.samples:
-            file_path = os.path.join(tests_dir, 'samples', fname)
+            file_path = os.path.join(self.samples_dir, fname)
             with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
                 res = PatchSet(diff_file)
 
