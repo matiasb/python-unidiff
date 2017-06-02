@@ -295,10 +295,12 @@ class PatchSet(list):
 
     def __init__(self, f, encoding=None):
         super(PatchSet, self).__init__()
-        # make sure we pass an iterator object to parse
+        
+        # convert string inputs to StringIO objects
         if isinstance(f, basestring):
             f = self.convert_string(f, encoding)
 
+        # make sure we pass an iterator object to parse
         data = iter(f)
         # if encoding is None, assume we are reading unicode data
         self._parse(data, encoding=encoding)
