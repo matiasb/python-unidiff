@@ -298,7 +298,7 @@ class PatchSet(list):
         
         # convert string inputs to StringIO objects
         if isinstance(f, basestring):
-            f = self.convert_string(f, encoding)
+            f = self._convert_string(f, encoding)
 
         # make sure we pass an iterator object to parse
         data = iter(f)
@@ -362,7 +362,7 @@ class PatchSet(list):
         return instance
 
     @staticmethod
-    def convert_string(data, encoding=None, errors='strict'):
+    def _convert_string(data, encoding=None, errors='strict'):
         """Return a PatchSet instance given a diff string."""
         if encoding is not None:
             # if encoding is given, assume bytes and decode
@@ -371,7 +371,7 @@ class PatchSet(list):
 
     @classmethod
     def from_string(cls, data, encoding=None, errors='strict'):
-        return cls(cls.convert_string(data, encoding, errors))
+        return cls(cls._convert_string(data, encoding, errors))
 
     @property
     def added_files(self):
