@@ -62,7 +62,8 @@ else:
     make_str = str
     implements_to_string = lambda x: x
     unicode = str
-
+    basestring = str
+    
 
 @implements_to_string
 class Line(object):
@@ -294,6 +295,11 @@ class PatchSet(list):
 
     def __init__(self, f, encoding=None):
         super(PatchSet, self).__init__()
+        
+        # convert string inputs to StringIO objects
+        if isinstance(f, basestring):
+            f = self._convert_string(f, encoding)
+
         # make sure we pass an iterator object to parse
         data = iter(f)
         # if encoding is None, assume we are reading unicode data
@@ -355,13 +361,17 @@ class PatchSet(list):
             instance = cls(f)
         return instance
 
-    @classmethod
-    def from_string(cls, data, encoding=None, errors='strict'):
+    @staticmethod
+    def _convert_string(data, encoding=None, errors='strict'):
         """Return a PatchSet instance given a diff string."""
         if encoding is not None:
             # if encoding is given, assume bytes and decode
             data = unicode(data, encoding=encoding, errors=errors)
-        return cls(StringIO(data))
+        return StringIO(data)
+
+    @classmethod
+    def from_string(cls, data, encoding=None, errors='strict'):
+        return cls(cls._convert_string(data, encoding, errors))
 
     @property
     def added_files(self):

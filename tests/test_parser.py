@@ -180,6 +180,16 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(ps1, ps2)
 
+    def test_patchset_string_input(self):
+            with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+                diff_data = diff_file.read()
+                ps1 = PatchSet(diff_data)
+
+            with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+                ps2 = PatchSet(diff_file)
+
+            self.assertEqual(ps1, ps2)
+
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
