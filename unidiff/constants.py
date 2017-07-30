@@ -44,7 +44,9 @@ RE_HUNK_HEADER = re.compile(
 # -  deleted line
 # \  No newline case
 RE_HUNK_BODY_LINE = re.compile(
-    r'^(?P<line_type>[- \n\+\\])(?P<value>.*)', re.DOTALL)
+    r'^(?P<line_type>[- \+\\])(?P<value>.*)', re.DOTALL)
+RE_HUNK_EMPTY_BODY_LINE = re.compile(
+    r'^(?P<line_type>[- \+\\]?)(?P<value>[\r\n]{1,2})', re.DOTALL)
 
 RE_NO_NEWLINE_MARKER = re.compile(r'^\\ No newline at end of file')
 
@@ -53,6 +55,6 @@ DEFAULT_ENCODING = 'UTF-8'
 LINE_TYPE_ADDED = '+'
 LINE_TYPE_REMOVED = '-'
 LINE_TYPE_CONTEXT = ' '
-LINE_TYPE_EMPTY = '\n'
+LINE_TYPE_EMPTY = ''
 LINE_TYPE_NO_NEWLINE = '\\'
 LINE_VALUE_NO_NEWLINE = ' No newline at end of file'

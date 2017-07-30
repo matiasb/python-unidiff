@@ -1,0 +1,29 @@
+=== modified file 'modified_file1'
+--- modified_file1	2013-10-13 23:53:13 +0000
++++ modified_file1	2013-10-13 23:53:26 +0000
+@@ -1,5 +1,7 @@
+ This is the original content.
+ 
+-This should be updated.
++This is now updated.
++
++This is a new line.
+
+ This will stay.
+\ No newline at end of file
+
+=== modified file 'modified_file2'
+--- modified_file2	2013-10-13 23:53:13 +0000
++++ modified_file2	2013-10-13 23:53:26 +0000
+@@ -1,5 +1,7 @@
+ This is the original content.
+ 
+-This should be updated.
++This is now updated.
++
++This is a new line.
+
+ This will stay.
+\ No newline at end of file
+
+
