@@ -213,13 +213,13 @@ class TestUnidiffParser(unittest.TestCase):
     def test_parse_malformed_diff_longer_than_expected(self):
         """Parse malformed file with non-terminated hunk."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample6.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with open(utf8_file, 'r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
     def test_parse_malformed_diff_shorter_than_expected(self):
         """Parse malformed file with non-terminated hunk."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample7.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with open(utf8_file, 'r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
     def test_diff_lines_linenos(self):
