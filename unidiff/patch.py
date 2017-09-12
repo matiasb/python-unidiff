@@ -38,6 +38,7 @@ from unidiff.constants import (
     LINE_TYPE_NO_NEWLINE,
     LINE_VALUE_NO_NEWLINE,
     RE_HUNK_BODY_LINE,
+    RE_HUNK_EMPTY_BODY_LINE,
     RE_HUNK_HEADER,
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
@@ -63,7 +64,7 @@ else:
     implements_to_string = lambda x: x
     unicode = str
     basestring = str
-    
+
 
 @implements_to_string
 class Line(object):
@@ -105,6 +106,19 @@ class Line(object):
 
 
 @implements_to_string
+class PatchInfo(list):
+    """Lines with extended patch info. Format of this info is not documented
+       and it very much depends on patch producer."""
+
+    def __repr__(self):
+        value = "<PatchInfo: %s>" % self[0].strip()
+        return make_str(value)
+
+    def __str__(self):
+        return ''.join(unicode(line) for line in self)
+
+
+@implements_to_string
 class Hunk(list):
     """Each of the modified blocks of a file."""
 
@@ -133,9 +147,11 @@ class Hunk(list):
         return make_str(value)
 
     def __str__(self):
-        head = "@@ -%d,%d +%d,%d @@ %s\n" % (
+        # section header is optional and thus we output it only if it's present
+        head = "@@ -%d,%d +%d,%d @@%s\n" % (
             self.source_start, self.source_length,
-            self.target_start, self.target_length, self.section_header)
+            self.target_start, self.target_length,
+            ' ' + self.section_header if self.section_header else '')
         content = ''.join(unicode(line) for line in self)
         return head + content
 
@@ -170,9 +186,10 @@ class Hunk(list):
 class PatchedFile(list):
     """Patch updated file, it is a list of Hunks."""
 
-    def __init__(self, source='', target='',
+    def __init__(self, patch_info=None, source='', target='',
                  source_timestamp=None, target_timestamp=None):
         super(PatchedFile, self).__init__()
+        self.patch_info = patch_info
         self.source_file = source
         self.source_timestamp = source_timestamp
         self.target_file = target
@@ -182,10 +199,16 @@ class PatchedFile(list):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
 
     def __str__(self):
-        source = "--- %s\n" % self.source_file
-        target = "+++ %s\n" % self.target_file
+        # patch info is optional
+        info = '' if self.patch_info is None else str(self.patch_info)
+        source = "--- %s%s\n" % (
+            self.source_file,
+            '\t' + self.source_timestamp if self.source_timestamp else '')
+        target = "+++ %s%s\n" % (
+            self.target_file,
+            '\t' + self.target_timestamp if self.target_timestamp else '')
         hunks = ''.join(unicode(hunk) for hunk in self)
-        return source + target + hunks
+        return info + source + target + hunks
 
     def _parse_hunk(self, header, diff, encoding):
         """Parse hunk details."""
@@ -201,7 +224,11 @@ class PatchedFile(list):
         for diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
-            valid_line = RE_HUNK_BODY_LINE.match(line)
+
+            valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
+            if not valid_line:
+                valid_line = RE_HUNK_BODY_LINE.match(line)
+
             if not valid_line:
                 raise UnidiffParseError('Hunk diff line expected: %s' % line)
 
@@ -226,6 +253,11 @@ class PatchedFile(list):
             else:
                 original_line = None
 
+            # stop parsing if we got past expected number of lines
+            if (source_line_no > expected_source_end or
+                    target_line_no > expected_target_end):
+                raise UnidiffParseError('Hunk is longer than expected')
+
             if original_line:
                 original_line.diff_line_no = diff_line_no
                 hunk.append(original_line)
@@ -234,6 +266,11 @@ class PatchedFile(list):
             if (source_line_no == expected_source_end and
                     target_line_no == expected_target_end):
                 break
+
+        # report an error if we haven't got expected number of lines
+        if (source_line_no < expected_source_end or
+                target_line_no < expected_target_end):
+            raise UnidiffParseError('Hunk is shorter than expected')
 
         self.append(hunk)
 
@@ -245,6 +282,12 @@ class PatchedFile(list):
         last_hunk.append(
             Line(LINE_VALUE_NO_NEWLINE + '\n', line_type=LINE_TYPE_NO_NEWLINE))
 
+    def _append_trailing_empty_line(self):
+        if not self:
+            raise UnidiffParseError('Unexpected trailing newline character')
+        last_hunk = self[-1]
+        last_hunk.append(Line('\n', line_type=LINE_TYPE_EMPTY))
+
     @property
     def path(self):
         """Return the file path abstracted from VCS."""
@@ -252,10 +295,10 @@ class PatchedFile(list):
                 self.target_file.startswith('b/')):
             filepath = self.source_file[2:]
         elif (self.source_file.startswith('a/') and
-                self.target_file == '/dev/null'):
+              self.target_file == '/dev/null'):
             filepath = self.source_file[2:]
         elif (self.target_file.startswith('b/') and
-                self.source_file == '/dev/null'):
+              self.source_file == '/dev/null'):
             filepath = self.target_file[2:]
         else:
             filepath = self.source_file
@@ -295,7 +338,7 @@ class PatchSet(list):
 
     def __init__(self, f, encoding=None):
         super(PatchSet, self).__init__()
-        
+
         # convert string inputs to StringIO objects
         if isinstance(f, basestring):
             f = self._convert_string(f, encoding)
@@ -309,15 +352,17 @@ class PatchSet(list):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
 
     def __str__(self):
-        return '\n'.join(unicode(patched_file) for patched_file in self)
+        return ''.join(unicode(patched_file) for patched_file in self)
 
     def _parse(self, diff, encoding):
         current_file = None
+        patch_info = None
 
         diff = enumerate(diff, 1)
         for unused_diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
+
             # check for source file header
             is_source_filename = RE_SOURCE_FILENAME.match(line)
             if is_source_filename:
@@ -335,9 +380,10 @@ class PatchSet(list):
                 target_file = is_target_filename.group('filename')
                 target_timestamp = is_target_filename.group('timestamp')
                 # add current file to PatchSet
-                current_file = PatchedFile(source_file, target_file,
+                current_file = PatchedFile(patch_info, source_file, target_file,
                                            source_timestamp, target_timestamp)
                 self.append(current_file)
+                patch_info = None
                 continue
 
             # check for hunk header
@@ -346,6 +392,7 @@ class PatchSet(list):
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
                 current_file._parse_hunk(line, diff, encoding)
+                continue
 
             # check for no newline marker
             is_no_newline = RE_NO_NEWLINE_MARKER.match(line)
@@ -353,6 +400,18 @@ class PatchSet(list):
                 if current_file is None:
                     raise UnidiffParseError('Unexpected marker: %s' % line)
                 current_file._add_no_newline_marker_to_last_hunk()
+                continue
+
+            # sometimes hunks can be followed by empty lines
+            if line == '\n' and current_file is not None:
+                current_file._append_trailing_empty_line()
+                continue
+
+            # if nothing has matched above then this line is a patch info
+            if patch_info is None:
+                current_file = None
+                patch_info = PatchInfo()
+            patch_info.append(line)
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None):

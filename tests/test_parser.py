@@ -92,12 +92,27 @@ class TestUnidiffParser(unittest.TestCase):
         added_unicode_line = res.added_files[0][0][1]
         self.assertEqual(added_unicode_line.value, 'holá mundo!\r\n')
 
+    def test_preserve_dos_line_endings_empty_line_type(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample5.diff')
+        with open(utf8_file, 'rb') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8')
+
+        # 2 files updated by diff
+        self.assertEqual(len(res), 2)
+        modified_unicode_line = res.modified_files[0][0][6]
+        self.assertEqual(modified_unicode_line.value, '\r\n')
+        self.assertEqual(modified_unicode_line.line_type, ' ')
+
+        modified_unicode_line = res.modified_files[1][0][6]
+        self.assertEqual(modified_unicode_line.value, '\n')
+        self.assertEqual(modified_unicode_line.line_type, ' ')
+
     def test_print_hunks_without_gaps(self):
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
             res = PatchSet(diff_file)
         lines = unicode(res).splitlines()
-        self.assertEqual(lines[12], '@@ -5,16 +11,10 @@ ')
-        self.assertEqual(lines[31], '@@ -22,3 +22,7 @@ ')
+        self.assertEqual(lines[12], '@@ -5,16 +11,10 @@')
+        self.assertEqual(lines[31], '@@ -22,3 +22,7 @@')
 
     def test_parse_sample(self):
         """Parse sample file."""
@@ -181,18 +196,30 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(ps1, ps2)
 
     def test_patchset_string_input(self):
-            with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
-                diff_data = diff_file.read()
-                ps1 = PatchSet(diff_data)
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+            diff_data = diff_file.read()
+            ps1 = PatchSet(diff_data)
 
-            with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
-                ps2 = PatchSet(diff_file)
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+            ps2 = PatchSet(diff_file)
 
-            self.assertEqual(ps1, ps2)
+        self.assertEqual(ps1, ps2)
 
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
+            self.assertRaises(UnidiffParseError, PatchSet, diff_file)
+
+    def test_parse_malformed_diff_longer_than_expected(self):
+        """Parse malformed file with non-terminated hunk."""
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample6.diff')
+        with open(utf8_file, 'r') as diff_file:
+            self.assertRaises(UnidiffParseError, PatchSet, diff_file)
+
+    def test_parse_malformed_diff_shorter_than_expected(self):
+        """Parse malformed file with non-terminated hunk."""
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample7.diff')
+        with open(utf8_file, 'r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
     def test_diff_lines_linenos(self):
@@ -295,3 +322,8 @@ class TestVCSSamples(unittest.TestCase):
 
             self.assertEqual(res.added, 7)
             self.assertEqual(res.removed, 4)
+
+            # check that original diffs and those produced
+            # by unidiff are the same
+            with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
+                self.assertEqual(diff_file.read(), str(res))
