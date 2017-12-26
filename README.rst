@@ -3,17 +3,21 @@ Unidiff
 
 Simple Python library to parse and interact with unified diff data.
 
-[![Build Status](https://travis-ci.org/matiasb/python-unidiff.png?branch=master)](https://travis-ci.org/matiasb/python-unidiff)
-
+.. image:: https://travis-ci.org/matiasb/python-unidiff.svg?branch=master
+    :target: https://travis-ci.org/matiasb/python-unidiff
 
 Installing unidiff
 ------------------
+
+::
 
     $ pip install unidiff
 
 
 Quick start
 -----------
+
+::
 
     >>> import urllib2
     >>> from unidiff import PatchSet
@@ -41,11 +45,11 @@ Quick start
     >>> print patch[2]
     --- a/unidiff/utils.py
     +++ b/unidiff/utils.py
-    @@ -37,4 +37,3 @@ 
+    @@ -37,4 +37,3 @@
     # - deleted line
     # \ No newline case (ignore)
     RE_HUNK_BODY_LINE = re.compile(r'^([- \+\\])')
-    -
+
 
 Load unified diff data by instantiating PatchSet with a file-like object as
 argument, or using PatchSet.from_filename class method to read diff from file.
@@ -63,6 +67,8 @@ As a quick example of what can be done, check bin/unidiff file.
 Also, once installed, unidiff provides a command-line program that displays
 information from diff data (a file, or stdin). For example:
 
+::
+
     $ git diff | unidiff
     Summary
     -------
@@ -77,12 +83,16 @@ Load a local diff file
 
 To instantiate PatchSet from a local file, you can use:
 
+::
+
     >>> from unidiff import PatchSet
     >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8')
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
 Notice the (optional) encoding parameter. If not specified, unicode input will be expected. Or alternatively:
+
+::
 
     >>> import codecs
     >>> from unidiff import PatchSet
@@ -93,6 +103,8 @@ Notice the (optional) encoding parameter. If not specified, unicode input will b
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
 Finally, you can also instantiate PatchSet passing any iterable (and encoding, if needed):
+
+::
 
     >>> from unidiff import PatchSet
     >>> with open('tests/samples/bzr.diff', 'r') as diff:
@@ -106,5 +118,5 @@ Finally, you can also instantiate PatchSet passing any iterable (and encoding, i
 References
 ----------
 
- * http://en.wikipedia.org/wiki/Diff_utility
- * http://www.artima.com/weblogs/viewpost.jsp?thread=164293
+* http://en.wikipedia.org/wiki/Diff_utility
+* http://www.artima.com/weblogs/viewpost.jsp?thread=164293

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014 Matias Bordese
+# Copyright (c) 2014-2017 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 from __future__ import unicode_literals
 
+from unidiff import __version__
 from unidiff.patch import (
     DEFAULT_ENCODING,
     LINE_TYPE_ADDED,
@@ -37,5 +38,4 @@ from unidiff.patch import (
     UnidiffParseError,
 )
 
-
-VERSION = '0.5.4'
+VERSION = __version__.__version__
