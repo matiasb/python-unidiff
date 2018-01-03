@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # The MIT License (MIT)
 # Copyright (c) 2014-2017 Matias Bordese
 #
@@ -19,4 +21,4 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Tests for unidiff."""
+__version__ = '0.5.5'

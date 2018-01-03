@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014 Matias Bordese
+# Copyright (c) 2014-2017 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -107,8 +107,12 @@ class Line(object):
 
 @implements_to_string
 class PatchInfo(list):
-    """Lines with extended patch info. Format of this info is not documented
-       and it very much depends on patch producer."""
+    """Lines with extended patch info.
+
+    Format of this info is not documented and it very much depends on
+    patch producer.
+
+    """
 
     def __repr__(self):
         value = "<PatchInfo: %s>" % self[0].strip()
@@ -380,8 +384,9 @@ class PatchSet(list):
                 target_file = is_target_filename.group('filename')
                 target_timestamp = is_target_filename.group('timestamp')
                 # add current file to PatchSet
-                current_file = PatchedFile(patch_info, source_file, target_file,
-                                           source_timestamp, target_timestamp)
+                current_file = PatchedFile(
+                    patch_info, source_file, target_file,
+                    source_timestamp, target_timestamp)
                 self.append(current_file)
                 patch_info = None
                 continue
@@ -422,7 +427,6 @@ class PatchSet(list):
 
     @staticmethod
     def _convert_string(data, encoding=None, errors='strict'):
-        """Return a PatchSet instance given a diff string."""
         if encoding is not None:
             # if encoding is given, assume bytes and decode
             data = unicode(data, encoding=encoding, errors=errors)
@@ -430,6 +434,7 @@ class PatchSet(list):
 
     @classmethod
     def from_string(cls, data, encoding=None, errors='strict'):
+        """Return a PatchSet instance given a diff string."""
         return cls(cls._convert_string(data, encoding, errors))
 
     @property

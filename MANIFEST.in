@@ -2,4 +2,4 @@ include bin/*
 include tests/samples/*
 include HISTORY
 include LICENSE
-include README.md
+include README.rst
