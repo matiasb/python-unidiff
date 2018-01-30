@@ -222,6 +222,40 @@ class TestUnidiffParser(unittest.TestCase):
         with open(utf8_file, 'r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
+    def test_parse_diff_with_new_and_modified_binary_files(self):
+        """Parse git diff file with newly added and modified binaries files."""
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res = PatchSet(diff_file)
+
+        # three file in the patch
+        self.assertEqual(len(res), 3)
+
+        # first file is added
+        self.assertFalse(res[0].is_modified_file)
+        self.assertFalse(res[0].is_removed_file)
+        self.assertTrue(res[0].is_added_file)
+
+        # second file is added
+        self.assertTrue(res[1].is_modified_file)
+        self.assertFalse(res[1].is_removed_file)
+        self.assertFalse(res[1].is_added_file)
+
+        # third file is removed
+        self.assertFalse(res[2].is_modified_file)
+        self.assertTrue(res[2].is_removed_file)
+        self.assertFalse(res[2].is_added_file)
+
+    def test_parse_round_trip_with_binary_files_in_diff(self):
+        """Parse git diff with binary files though round trip"""
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res1 = PatchSet(diff_file)
+
+        res2 = PatchSet(str(res1))
+        self.assertEqual(res1, res2)
+
+
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')

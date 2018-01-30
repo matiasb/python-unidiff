@@ -43,6 +43,7 @@ from unidiff.constants import (
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
     RE_NO_NEWLINE_MARKER,
+    RE_BINARY_DIFF,
 )
 from unidiff.errors import UnidiffParseError
 
@@ -212,7 +213,7 @@ class PatchedFile(list):
             self.target_file,
             '\t' + self.target_timestamp if self.target_timestamp else '')
         hunks = ''.join(unicode(hunk) for hunk in self)
-        return info + source + target + hunks
+        return info + (source + target + hunks if hunks else '')
 
     def _parse_hunk(self, header, diff, encoding):
         """Parse hunk details."""
@@ -321,12 +322,16 @@ class PatchedFile(list):
     @property
     def is_added_file(self):
         """Return True if this patch adds the file."""
+        if self.source_file == '/dev/null':
+            return True
         return (len(self) == 1 and self[0].source_start == 0 and
                 self[0].source_length == 0)
 
     @property
     def is_removed_file(self):
         """Return True if this patch removes the file."""
+        if self.target_file == '/dev/null':
+            return True
         return (len(self) == 1 and self[0].target_start == 0 and
                 self[0].target_length == 0)
 
@@ -410,6 +415,17 @@ class PatchSet(list):
             # sometimes hunks can be followed by empty lines
             if line == '\n' and current_file is not None:
                 current_file._append_trailing_empty_line()
+                continue
+
+            is_binary_diff = RE_BINARY_DIFF.match(line)
+            if is_binary_diff:
+                source_file = is_binary_diff.group('source_filename')
+                target_file = is_binary_diff.group('target_filename')
+                patch_info.append(line)
+                current_file = PatchedFile(
+                    patch_info, source_file, target_file)
+                self.append(current_file)
+                patch_info = None
                 continue
 
             # if nothing has matched above then this line is a patch info
