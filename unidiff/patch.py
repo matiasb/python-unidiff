@@ -133,12 +133,8 @@ class Hunk(list):
             src_len = 1
         if tgt_len is None:
             tgt_len = 1
-        self.added = 0  # number of added lines
-        self.removed = 0  # number of removed lines
-        self.source = []
         self.source_start = int(src_start)
         self.source_length = int(src_len)
-        self.target = []
         self.target_start = int(tgt_start)
         self.target_length = int(tgt_len)
         self.section_header = section_header
@@ -162,17 +158,18 @@ class Hunk(list):
 
     def append(self, line):
         """Append the line to hunk, and keep track of source/target lines."""
+        # Make sure the line is encoded correctly. This is a no-op except for
+        # potentially raising a UnicodeDecodeError.
+        str(line)
         super(Hunk, self).append(line)
-        s = str(line)
-        if line.is_added:
-            self.added += 1
-            self.target.append(s)
-        elif line.is_removed:
-            self.removed += 1
-            self.source.append(s)
-        elif line.is_context:
-            self.target.append(s)
-            self.source.append(s)
+
+    @property
+    def added(self):
+        return sum(1 for line in self if line.is_added)
+
+    @property
+    def removed(self):
+        return sum(1 for line in self if line.is_removed)
 
     def is_valid(self):
         """Check hunk header data matches entered lines info."""
@@ -183,9 +180,17 @@ class Hunk(list):
         """Hunk lines from source file (generator)."""
         return (l for l in self if l.is_context or l.is_removed)
 
+    @property
+    def source(self):
+        return [str(l) for l in self.source_lines()]
+
     def target_lines(self):
         """Hunk lines from target file (generator)."""
         return (l for l in self if l.is_context or l.is_added)
+
+    @property
+    def target(self):
+        return [str(l) for l in self.target_lines()]
 
 
 class PatchedFile(list):
