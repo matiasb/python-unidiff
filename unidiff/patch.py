@@ -128,6 +128,7 @@ class Hunk(list):
 
     def __init__(self, src_start=0, src_len=0, tgt_start=0, tgt_len=0,
                  section_header=''):
+        super(Hunk, self).__init__()
         if src_len is None:
             src_len = 1
         if tgt_len is None:
