@@ -128,6 +128,7 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[0].is_modified_file)
         self.assertFalse(res[0].is_removed_file)
         self.assertFalse(res[0].is_added_file)
+        self.assertFalse(res[0].is_binary_file)
 
         # Hunk 1: five additions, no deletions, a section header
         self.assertEqual(res[0][0].added, 6)
@@ -152,11 +153,13 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertFalse(res[1].is_modified_file)
         self.assertFalse(res[1].is_removed_file)
         self.assertTrue(res[1].is_added_file)
+        self.assertFalse(res[1].is_binary_file)
 
         # third file is removed
         self.assertFalse(res[2].is_modified_file)
         self.assertTrue(res[2].is_removed_file)
         self.assertFalse(res[2].is_added_file)
+        self.assertFalse(res[2].is_binary_file)
 
         self.assertEqual(res.added, 21)
         self.assertEqual(res.removed, 17)
@@ -235,16 +238,19 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertFalse(res[0].is_modified_file)
         self.assertFalse(res[0].is_removed_file)
         self.assertTrue(res[0].is_added_file)
+        self.assertTrue(res[0].is_binary_file)
 
         # second file is added
         self.assertTrue(res[1].is_modified_file)
         self.assertFalse(res[1].is_removed_file)
         self.assertFalse(res[1].is_added_file)
+        self.assertTrue(res[1].is_binary_file)
 
         # third file is removed
         self.assertFalse(res[2].is_modified_file)
         self.assertTrue(res[2].is_removed_file)
         self.assertFalse(res[2].is_added_file)
+        self.assertTrue(res[2].is_binary_file)
 
     def test_parse_round_trip_with_binary_files_in_diff(self):
         """Parse git diff with binary files though round trip"""
