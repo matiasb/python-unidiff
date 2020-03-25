@@ -255,7 +255,6 @@ class TestUnidiffParser(unittest.TestCase):
         res2 = PatchSet(str(res1))
         self.assertEqual(res1, res2)
 
-
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')

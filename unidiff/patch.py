@@ -192,28 +192,33 @@ class PatchedFile(list):
     """Patch updated file, it is a list of Hunks."""
 
     def __init__(self, patch_info=None, source='', target='',
-                 source_timestamp=None, target_timestamp=None):
+                 source_timestamp=None, target_timestamp=None,
+                 is_binary_file=False):
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
         self.source_timestamp = source_timestamp
         self.target_file = target
         self.target_timestamp = target_timestamp
+        self.is_binary_file = is_binary_file
 
     def __repr__(self):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
 
     def __str__(self):
+        source = ''
+        target = ''
         # patch info is optional
         info = '' if self.patch_info is None else str(self.patch_info)
-        source = "--- %s%s\n" % (
-            self.source_file,
-            '\t' + self.source_timestamp if self.source_timestamp else '')
-        target = "+++ %s%s\n" % (
-            self.target_file,
-            '\t' + self.target_timestamp if self.target_timestamp else '')
+        if not self.is_binary_file:
+            source = "--- %s%s\n" % (
+                self.source_file,
+                '\t' + self.source_timestamp if self.source_timestamp else '')
+            target = "+++ %s%s\n" % (
+                self.target_file,
+                '\t' + self.target_timestamp if self.target_timestamp else '')
         hunks = ''.join(unicode(hunk) for hunk in self)
-        return info + (source + target + hunks if hunks else '')
+        return info + source + target + hunks
 
     def _parse_hunk(self, header, diff, encoding):
         """Parse hunk details."""
@@ -302,7 +307,8 @@ class PatchedFile(list):
         elif (self.source_file.startswith('a/') and
               self.target_file == '/dev/null'):
             filepath = self.source_file[2:]
-        elif (self.target_file.startswith('b/') and
+        elif (self.target_file is not None and
+              self.target_file.startswith('b/') and
               self.source_file == '/dev/null'):
             filepath = self.target_file[2:]
         else:
@@ -423,9 +429,10 @@ class PatchSet(list):
                 target_file = is_binary_diff.group('target_filename')
                 patch_info.append(line)
                 current_file = PatchedFile(
-                    patch_info, source_file, target_file)
+                    patch_info, source_file, target_file, is_binary_file=True)
                 self.append(current_file)
                 patch_info = None
+                current_file = None
                 continue
 
             # if nothing has matched above then this line is a patch info
