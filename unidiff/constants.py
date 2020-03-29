@@ -50,6 +50,11 @@ RE_HUNK_EMPTY_BODY_LINE = re.compile(
 
 RE_NO_NEWLINE_MARKER = re.compile(r'^\\ No newline at end of file')
 
+RE_BINARY_DIFF = re.compile(
+    r'^Binary files? '
+    '(?P<source_filename>[^\t]+?)(?:\t(?P<source_timestamp>[\s0-9:\+-]+))?'
+    '(?: and (?P<target_filename>[^\t]+?)(?:\t(?P<target_timestamp>[\s0-9:\+-]+))?)? (differ|has changed)')
+
 DEFAULT_ENCODING = 'UTF-8'
 
 LINE_TYPE_ADDED = '+'

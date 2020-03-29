@@ -1,0 +1,11 @@
+diff --git a/foo.bin b/foo.bin
+new file mode 100644
+index 0000000..af000000
+Binary files /dev/null and b/foo.bin differ
+diff --git a/bar.bin b/bar.bin
+index ad000000..ac000000 100644
+Binary files a/bar.bin and b/bar.bin differ
+diff --git a/baz.bin b/baz.bin
+deleted file mode 100644
+index af000000..0000000
+Binary files a/baz.bin and /dev/null differ

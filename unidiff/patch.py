@@ -43,6 +43,7 @@ from unidiff.constants import (
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
     RE_NO_NEWLINE_MARKER,
+    RE_BINARY_DIFF,
 )
 from unidiff.errors import UnidiffParseError
 
@@ -191,26 +192,31 @@ class PatchedFile(list):
     """Patch updated file, it is a list of Hunks."""
 
     def __init__(self, patch_info=None, source='', target='',
-                 source_timestamp=None, target_timestamp=None):
+                 source_timestamp=None, target_timestamp=None,
+                 is_binary_file=False):
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
         self.source_timestamp = source_timestamp
         self.target_file = target
         self.target_timestamp = target_timestamp
+        self.is_binary_file = is_binary_file
 
     def __repr__(self):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
 
     def __str__(self):
+        source = ''
+        target = ''
         # patch info is optional
         info = '' if self.patch_info is None else str(self.patch_info)
-        source = "--- %s%s\n" % (
-            self.source_file,
-            '\t' + self.source_timestamp if self.source_timestamp else '')
-        target = "+++ %s%s\n" % (
-            self.target_file,
-            '\t' + self.target_timestamp if self.target_timestamp else '')
+        if not self.is_binary_file:
+            source = "--- %s%s\n" % (
+                self.source_file,
+                '\t' + self.source_timestamp if self.source_timestamp else '')
+            target = "+++ %s%s\n" % (
+                self.target_file,
+                '\t' + self.target_timestamp if self.target_timestamp else '')
         hunks = ''.join(unicode(hunk) for hunk in self)
         return info + source + target + hunks
 
@@ -301,7 +307,8 @@ class PatchedFile(list):
         elif (self.source_file.startswith('a/') and
               self.target_file == '/dev/null'):
             filepath = self.source_file[2:]
-        elif (self.target_file.startswith('b/') and
+        elif (self.target_file is not None and
+              self.target_file.startswith('b/') and
               self.source_file == '/dev/null'):
             filepath = self.target_file[2:]
         else:
@@ -321,12 +328,16 @@ class PatchedFile(list):
     @property
     def is_added_file(self):
         """Return True if this patch adds the file."""
+        if self.source_file == '/dev/null':
+            return True
         return (len(self) == 1 and self[0].source_start == 0 and
                 self[0].source_length == 0)
 
     @property
     def is_removed_file(self):
         """Return True if this patch removes the file."""
+        if self.target_file == '/dev/null':
+            return True
         return (len(self) == 1 and self[0].target_start == 0 and
                 self[0].target_length == 0)
 
@@ -410,6 +421,18 @@ class PatchSet(list):
             # sometimes hunks can be followed by empty lines
             if line == '\n' and current_file is not None:
                 current_file._append_trailing_empty_line()
+                continue
+
+            is_binary_diff = RE_BINARY_DIFF.match(line)
+            if is_binary_diff:
+                source_file = is_binary_diff.group('source_filename')
+                target_file = is_binary_diff.group('target_filename')
+                patch_info.append(line)
+                current_file = PatchedFile(
+                    patch_info, source_file, target_file, is_binary_file=True)
+                self.append(current_file)
+                patch_info = None
+                current_file = None
                 continue
 
             # if nothing has matched above then this line is a patch info

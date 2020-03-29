@@ -56,10 +56,13 @@ if __name__ == '__main__':
     additions = 0
     deletions = 0
     for f in patch:
-        additions += f.added
-        deletions += f.removed
-        print('%s:' % f.path, '+%d additions,' % f.added,
-              '-%d deletions' % f.removed)
+        if f.is_binary_file:
+            print('%s:' % f.path, '(binary file)')
+        else:
+            additions += f.added
+            deletions += f.removed
+            print('%s:' % f.path, '+%d additions,' % f.added,
+                  '-%d deletions' % f.removed)
 
     print()
     print('%d modified file(s), %d added file(s), %d removed file(s)' % (
