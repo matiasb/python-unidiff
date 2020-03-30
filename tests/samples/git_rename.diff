@@ -1,0 +1,13 @@
+diff --git a/added b/moved
+similarity index 85%
+rename from added
+rename to moved
+index a071991..4dbab21 100644
+--- a/added
++++ b/moved
+@@ -9,4 +9,4 @@ Some content
+ Some content
+ Some content
+ Some content
+-Some content
++Some modified content

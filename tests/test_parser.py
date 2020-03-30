@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2017 Matias Bordese
+# Copyright (c) 2014-2020 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -366,3 +366,24 @@ class TestVCSSamples(unittest.TestCase):
             # by unidiff are the same
             with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
                 self.assertEqual(diff_file.read(), str(res))
+
+    def test_git_renaming(self):
+        tests_dir = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.join(tests_dir, 'samples/git_rename.diff')
+        with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
+            res = PatchSet(diff_file)
+
+        self.assertEqual(len(res), 1)
+
+        patch = res[0]
+        self.assertTrue(patch.is_rename)
+        self.assertEqual(patch.added, 1)
+        self.assertEqual(patch.removed, 1)
+        self.assertEqual(len(res.modified_files), 1)
+        self.assertEqual(len(res.added_files), 0)
+        self.assertEqual(len(res.removed_files), 0)
+
+        # check that original diffs and those produced
+        # by unidiff are the same
+        with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
+            self.assertEqual(diff_file.read(), str(res))
