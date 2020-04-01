@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2017 Matias Bordese
+# Copyright (c) 2014-2020 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,8 @@ from unidiff.constants import (
     RE_HUNK_BODY_LINE,
     RE_HUNK_EMPTY_BODY_LINE,
     RE_HUNK_HEADER,
+    RE_RENAME_SOURCE_FILENAME,
+    RE_RENAME_TARGET_FILENAME,
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
     RE_NO_NEWLINE_MARKER,
@@ -193,7 +195,7 @@ class PatchedFile(list):
 
     def __init__(self, patch_info=None, source='', target='',
                  source_timestamp=None, target_timestamp=None,
-                 is_binary_file=False):
+                 is_binary_file=False, is_rename=False):
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
@@ -201,6 +203,7 @@ class PatchedFile(list):
         self.target_file = target
         self.target_timestamp = target_timestamp
         self.is_binary_file = is_binary_file
+        self.is_rename = is_rename
 
     def __repr__(self):
         return make_str("<PatchedFile: %s>") % make_str(self.path)
@@ -210,7 +213,7 @@ class PatchedFile(list):
         target = ''
         # patch info is optional
         info = '' if self.patch_info is None else str(self.patch_info)
-        if not self.is_binary_file:
+        if not self.is_binary_file and self:
             source = "--- %s%s\n" % (
                 self.source_file,
                 '\t' + self.source_timestamp if self.source_timestamp else '')
@@ -378,28 +381,61 @@ class PatchSet(list):
             if encoding is not None:
                 line = line.decode(encoding)
 
+            # check for a git rename, source file
+            is_rename_source_filename = RE_RENAME_SOURCE_FILENAME.match(line)
+            if is_rename_source_filename:
+                # prefix with 'a/' to match expected git source format
+                source_file = (
+                    'a/' + is_rename_source_filename.group('filename'))
+                # keep line as patch_info
+                patch_info.append(line)
+                # reset current file
+                current_file = None
+                continue
+
+            # check for a git rename, target file
+            is_rename_target_filename = RE_RENAME_TARGET_FILENAME.match(line)
+            if is_rename_target_filename:
+                if current_file is not None:
+                    raise UnidiffParseError('Target without source: %s' % line)
+                # prefix with 'b/' to match expected git source format
+                target_file = (
+                    'b/' + is_rename_target_filename.group('filename'))
+                # keep line as patch_info
+                patch_info.append(line)
+                # add current file to PatchSet
+                current_file = PatchedFile(
+                    patch_info, source_file, target_file, None, None,
+                    is_rename=True)
+                self.append(current_file)
+                continue
+
             # check for source file header
             is_source_filename = RE_SOURCE_FILENAME.match(line)
             if is_source_filename:
                 source_file = is_source_filename.group('filename')
                 source_timestamp = is_source_filename.group('timestamp')
-                # reset current file
-                current_file = None
+                # reset current file, unless we are processing a rename
+                # (in that case, source files should match)
+                if current_file is not None and not (current_file.is_rename and
+                        current_file.source_file == source_file):
+                    current_file = None
                 continue
 
             # check for target file header
             is_target_filename = RE_TARGET_FILENAME.match(line)
             if is_target_filename:
-                if current_file is not None:
+                if current_file is not None and not current_file.is_rename:
                     raise UnidiffParseError('Target without source: %s' % line)
                 target_file = is_target_filename.group('filename')
                 target_timestamp = is_target_filename.group('timestamp')
-                # add current file to PatchSet
-                current_file = PatchedFile(
-                    patch_info, source_file, target_file,
-                    source_timestamp, target_timestamp)
-                self.append(current_file)
-                patch_info = None
+                if current_file is None:
+                    # add current file to PatchSet
+                    current_file = PatchedFile(
+                        patch_info, source_file, target_file,
+                        source_timestamp, target_timestamp)
+                    self.append(current_file)
+                    patch_info = None
                 continue
 
             # check for hunk header

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2017 Matias Bordese
+# Copyright (c) 2014-2020 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,12 @@ RE_SOURCE_FILENAME = re.compile(
     r'^--- (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
 RE_TARGET_FILENAME = re.compile(
     r'^\+\+\+ (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
+
+
+# git renamed files support
+RE_RENAME_SOURCE_FILENAME = re.compile(r'^rename from (?P<filename>[^\t\n]+)')
+RE_RENAME_TARGET_FILENAME = re.compile(r'^rename to (?P<filename>[^\t\n]+)')
+
 
 # @@ (source offset, length) (target offset, length) @@ (section header)
 RE_HUNK_HEADER = re.compile(
