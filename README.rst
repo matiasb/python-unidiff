@@ -19,10 +19,10 @@ Quick start
 
 ::
 
-    >>> import urllib2
+    >>> import urllib.request
     >>> from unidiff import PatchSet
-    >>> diff = urllib2.urlopen('https://github.com/matiasb/python-unidiff/pull/3.diff')
-    >>> encoding = diff.headers.getparam('charset')
+    >>> diff = urllib.request.urlopen('https://github.com/matiasb/python-unidiff/pull/3.diff')
+    >>> encoding = diff.headers.get_charsets()[0]
     >>> patch = PatchSet(diff, encoding=encoding)
     >>> patch
     <PatchSet: [<PatchedFile: .gitignore>, <PatchedFile: unidiff/patch.py>, <PatchedFile: unidiff/utils.py>]>
@@ -42,19 +42,22 @@ Quick start
     <Hunk: @@ 109,14 110,21 @@ def __repr__(self):>
     >>> patch[2]
     <PatchedFile: unidiff/utils.py>
-    >>> print patch[2]
+    >>> print(patch[2])
+    diff --git a/unidiff/utils.py b/unidiff/utils.py
+    index eae63e6..29c896a 100644
     --- a/unidiff/utils.py
     +++ b/unidiff/utils.py
     @@ -37,4 +37,3 @@
     # - deleted line
     # \ No newline case (ignore)
     RE_HUNK_BODY_LINE = re.compile(r'^([- \+\\])')
+    -
 
 
-Load unified diff data by instantiating PatchSet with a file-like object as
-argument, or using PatchSet.from_filename class method to read diff from file.
+Load unified diff data by instantiating `PatchSet` with a file-like object as
+argument, or using `PatchSet.from_filename` class method to read diff from file.
 
-A PatchSet is a list of files updated by the given patch. For each PatchedFile
+A `PatchSet` is a list of files updated by the given patch. For each `PatchedFile`
 you can get stats (if it is a new, removed or modified file; the source/target
 lines; etc), besides having access to each hunk (also like a list) and its
 respective info.
@@ -81,7 +84,7 @@ information from diff data (a file, or stdin). For example:
 Load a local diff file
 ----------------------
 
-To instantiate PatchSet from a local file, you can use:
+To instantiate `PatchSet` from a local file, you can use:
 
 ::
 
@@ -90,7 +93,7 @@ To instantiate PatchSet from a local file, you can use:
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
-Notice the (optional) encoding parameter. If not specified, unicode input will be expected. Or alternatively:
+Notice the (optional) `encoding` parameter. If not specified, unicode input will be expected. Or alternatively:
 
 ::
 
@@ -110,7 +113,7 @@ Finally, you can also instantiate PatchSet passing any iterable (and encoding, i
     >>> with open('tests/samples/bzr.diff', 'r') as diff:
     ...     data = diff.readlines()
     ...
-    >>> patch = PatchSet(data, encoding='utf-8')
+    >>> patch = PatchSet(data)
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
