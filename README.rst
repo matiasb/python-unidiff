@@ -54,10 +54,10 @@ Quick start
     -
 
 
-Load unified diff data by instantiating `PatchSet` with a file-like object as
-argument, or using `PatchSet.from_filename` class method to read diff from file.
+Load unified diff data by instantiating :code:`PatchSet` with a file-like object as
+argument, or using :code:`PatchSet.from_filename` class method to read diff from file.
 
-A `PatchSet` is a list of files updated by the given patch. For each `PatchedFile`
+A :code:`PatchSet` is a list of files updated by the given patch. For each :code:`PatchedFile`
 you can get stats (if it is a new, removed or modified file; the source/target
 lines; etc), besides having access to each hunk (also like a list) and its
 respective info.
@@ -84,7 +84,7 @@ information from diff data (a file, or stdin). For example:
 Load a local diff file
 ----------------------
 
-To instantiate `PatchSet` from a local file, you can use:
+To instantiate :code:`PatchSet` from a local file, you can use:
 
 ::
 
@@ -93,7 +93,7 @@ To instantiate `PatchSet` from a local file, you can use:
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
-Notice the (optional) `encoding` parameter. If not specified, unicode input will be expected. Or alternatively:
+Notice the (optional) :code:`encoding` parameter. If not specified, unicode input will be expected. Or alternatively:
 
 ::
 
@@ -105,7 +105,7 @@ Notice the (optional) `encoding` parameter. If not specified, unicode input will
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
-Finally, you can also instantiate PatchSet passing any iterable (and encoding, if needed):
+Finally, you can also instantiate :code:`PatchSet` passing any iterable (and encoding, if needed):
 
 ::
 
