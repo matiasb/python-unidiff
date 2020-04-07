@@ -321,9 +321,9 @@ class TestUnidiffParser(unittest.TestCase):
             res = PatchSet(diff_file, encoding='utf-8')
         self.do_test_diff_hunk_positions(res)
 
-    def test_diff_hunk_positions_only_hunk_positions(self):
+    def test_diff_metadata_only(self):
         with open(self.sample_file, 'rb') as diff_file:
-            res = PatchSet(diff_file, encoding='utf-8', only_hunk_positions=True)
+            res = PatchSet(diff_file, encoding='utf-8', metadata_only=True)
         self.do_test_diff_hunk_positions(res)
 
     def do_test_diff_hunk_positions(self, res):
