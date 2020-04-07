@@ -244,9 +244,9 @@ class PatchedFile(list):
             if encoding is not None:
                 line = line.decode(encoding)
 
-            valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
+            valid_line = RE_HUNK_BODY_LINE.match(line)
             if not valid_line:
-                valid_line = RE_HUNK_BODY_LINE.match(line)
+                valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
 
             if not valid_line:
                 raise UnidiffParseError('Hunk diff line expected: %s' % line)
