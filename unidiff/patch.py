@@ -229,7 +229,7 @@ class PatchedFile(list):
         hunks = ''.join(unicode(hunk) for hunk in self)
         return info + source + target + hunks
 
-    def _parse_hunk(self, header, diff, encoding):
+    def _parse_hunk(self, header, diff, encoding, only_hunk_positions):
         """Parse hunk details."""
         header_info = RE_HUNK_HEADER.match(header)
         hunk_info = header_info.groups()
@@ -244,33 +244,53 @@ class PatchedFile(list):
             if encoding is not None:
                 line = line.decode(encoding)
 
-            valid_line = RE_HUNK_BODY_LINE.match(line)
-            if not valid_line:
-                valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
+            if only_hunk_positions:
+                if not line:
+                    line_type = LINE_TYPE_CONTEXT
+                else:
+                    line_type = line[0]
 
-            if not valid_line:
-                raise UnidiffParseError('Hunk diff line expected: %s' % line)
+                if line_type == LINE_TYPE_ADDED:
+                    target_line_no += 1
+                elif line_type == LINE_TYPE_REMOVED:
+                    source_line_no += 1
+                elif line_type == LINE_TYPE_CONTEXT:
+                    target_line_no += 1
+                    source_line_no += 1
+                elif line_type == LINE_TYPE_NO_NEWLINE:
+                    pass
+                else:
+                    raise UnidiffParseError('Hunk diff line expected: %s' % line)
 
-            line_type = valid_line.group('line_type')
-            if line_type == LINE_TYPE_EMPTY:
-                line_type = LINE_TYPE_CONTEXT
-            value = valid_line.group('value')
-            original_line = Line(value, line_type=line_type)
-            if line_type == LINE_TYPE_ADDED:
-                original_line.target_line_no = target_line_no
-                target_line_no += 1
-            elif line_type == LINE_TYPE_REMOVED:
-                original_line.source_line_no = source_line_no
-                source_line_no += 1
-            elif line_type == LINE_TYPE_CONTEXT:
-                original_line.target_line_no = target_line_no
-                target_line_no += 1
-                original_line.source_line_no = source_line_no
-                source_line_no += 1
-            elif line_type == LINE_TYPE_NO_NEWLINE:
-                pass
-            else:
                 original_line = None
+            else:
+                valid_line = RE_HUNK_BODY_LINE.match(line)
+                if not valid_line:
+                    valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
+
+                if not valid_line:
+                    raise UnidiffParseError('Hunk diff line expected: %s' % line)
+
+                line_type = valid_line.group('line_type')
+                if line_type == LINE_TYPE_EMPTY:
+                    line_type = LINE_TYPE_CONTEXT
+                value = valid_line.group('value')
+                original_line = Line(value, line_type=line_type)
+                if line_type == LINE_TYPE_ADDED:
+                    original_line.target_line_no = target_line_no
+                    target_line_no += 1
+                elif line_type == LINE_TYPE_REMOVED:
+                    original_line.source_line_no = source_line_no
+                    source_line_no += 1
+                elif line_type == LINE_TYPE_CONTEXT:
+                    original_line.target_line_no = target_line_no
+                    target_line_no += 1
+                    original_line.source_line_no = source_line_no
+                    source_line_no += 1
+                elif line_type == LINE_TYPE_NO_NEWLINE:
+                    pass
+                else:
+                    original_line = None
 
             # stop parsing if we got past expected number of lines
             if (source_line_no > expected_source_end or
@@ -360,7 +380,7 @@ class PatchedFile(list):
 class PatchSet(list):
     """A list of PatchedFiles."""
 
-    def __init__(self, f, encoding=None):
+    def __init__(self, f, encoding=None, only_hunk_positions=False):
         super(PatchSet, self).__init__()
 
         # convert string inputs to StringIO objects
@@ -370,7 +390,9 @@ class PatchSet(list):
         # make sure we pass an iterator object to parse
         data = iter(f)
         # if encoding is None, assume we are reading unicode data
-        self._parse(data, encoding=encoding)
+        # if only_hunk_positions is True, we perform only minimal parsing of lines within hunks.
+        # This is around 2.5-6 times faster than full parsing depending on Python version.
+        self._parse(data, encoding=encoding, only_hunk_positions=only_hunk_positions)
 
     def __repr__(self):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
@@ -378,7 +400,7 @@ class PatchSet(list):
     def __str__(self):
         return ''.join(unicode(patched_file) for patched_file in self)
 
-    def _parse(self, diff, encoding):
+    def _parse(self, diff, encoding, only_hunk_positions):
         current_file = None
         patch_info = None
 
@@ -449,7 +471,7 @@ class PatchSet(list):
             if is_hunk_header:
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
-                current_file._parse_hunk(line, diff, encoding)
+                current_file._parse_hunk(line, diff, encoding, only_hunk_positions)
                 continue
 
             # check for no newline marker
