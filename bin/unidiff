@@ -45,7 +45,7 @@ if __name__ == '__main__':
     if PY2:
         diff_file = codecs.getreader(encoding)(diff_file)
 
-    patch = PatchSet(diff_file)
+    patch = PatchSet(diff_file, metadata_only=(not args.show_diff))
 
     if args.show_diff:
         print(patch)

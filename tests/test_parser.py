@@ -114,10 +114,10 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(lines[12], '@@ -5,16 +11,10 @@')
         self.assertEqual(lines[31], '@@ -22,3 +22,7 @@')
 
-    def test_parse_sample(self):
+    def _test_parse_sample(self, metadata_only):
         """Parse sample file."""
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
-            res = PatchSet(diff_file)
+            res = PatchSet(diff_file, metadata_only=metadata_only)
 
         # three file in the patch
         self.assertEqual(len(res), 3)
@@ -163,6 +163,12 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(res.added, 21)
         self.assertEqual(res.removed, 17)
+
+    def test_parse_sample_full(self):
+        self._test_parse_sample(metadata_only=False)
+
+    def test_parse_sample_metadata_only(self):
+        self._test_parse_sample(metadata_only=True)
 
     def test_patchset_compare(self):
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
