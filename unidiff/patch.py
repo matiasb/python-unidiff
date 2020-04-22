@@ -141,6 +141,8 @@ class Hunk(list):
         self.target_start = int(tgt_start)
         self.target_length = int(tgt_len)
         self.section_header = section_header
+        self._added = None
+        self._removed = None
 
     def __repr__(self):
         value = "<Hunk: @@ %d,%d %d,%d @@ %s>" % (self.source_start,
@@ -168,10 +170,18 @@ class Hunk(list):
 
     @property
     def added(self):
+        if self._added is not None:
+            return self._added
+        # re-calculate each time to allow for hunk modifications
+        # (which should mean metadata_only switch wasn't used)
         return sum(1 for line in self if line.is_added)
 
     @property
     def removed(self):
+        if self._removed is not None:
+            return self._removed
+        # re-calculate each time to allow for hunk modifications
+        # (which should mean metadata_only switch wasn't used)
         return sum(1 for line in self if line.is_removed)
 
     def is_valid(self):
@@ -229,7 +239,7 @@ class PatchedFile(list):
         hunks = ''.join(unicode(hunk) for hunk in self)
         return info + source + target + hunks
 
-    def _parse_hunk(self, header, diff, encoding):
+    def _parse_hunk(self, header, diff, encoding, metadata_only):
         """Parse hunk details."""
         header_info = RE_HUNK_HEADER.match(header)
         hunk_info = header_info.groups()
@@ -239,38 +249,68 @@ class PatchedFile(list):
         target_line_no = hunk.target_start
         expected_source_end = source_line_no + hunk.source_length
         expected_target_end = target_line_no + hunk.target_length
+        added = 0
+        removed = 0
 
         for diff_line_no, line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
 
-            valid_line = RE_HUNK_BODY_LINE.match(line)
-            if not valid_line:
-                valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
+            if metadata_only:
+                # quick line type detection, no regex required
+                line_type = line[0] if line else LINE_TYPE_CONTEXT
+                if line_type not in (LINE_TYPE_ADDED,
+                                     LINE_TYPE_REMOVED,
+                                     LINE_TYPE_CONTEXT,
+                                     LINE_TYPE_NO_NEWLINE):
+                    raise UnidiffParseError(
+                        'Hunk diff line expected: %s' % line)
 
-            if not valid_line:
-                raise UnidiffParseError('Hunk diff line expected: %s' % line)
+                if line_type == LINE_TYPE_ADDED:
+                    target_line_no += 1
+                    added += 1
+                elif line_type == LINE_TYPE_REMOVED:
+                    source_line_no += 1
+                    removed += 1
+                elif line_type == LINE_TYPE_CONTEXT:
+                    target_line_no += 1
+                    source_line_no += 1
 
-            line_type = valid_line.group('line_type')
-            if line_type == LINE_TYPE_EMPTY:
-                line_type = LINE_TYPE_CONTEXT
-            value = valid_line.group('value')
-            original_line = Line(value, line_type=line_type)
-            if line_type == LINE_TYPE_ADDED:
-                original_line.target_line_no = target_line_no
-                target_line_no += 1
-            elif line_type == LINE_TYPE_REMOVED:
-                original_line.source_line_no = source_line_no
-                source_line_no += 1
-            elif line_type == LINE_TYPE_CONTEXT:
-                original_line.target_line_no = target_line_no
-                target_line_no += 1
-                original_line.source_line_no = source_line_no
-                source_line_no += 1
-            elif line_type == LINE_TYPE_NO_NEWLINE:
-                pass
-            else:
+                # no file content tracking
                 original_line = None
+
+            else:
+                # parse diff line content
+                valid_line = RE_HUNK_BODY_LINE.match(line)
+                if not valid_line:
+                    valid_line = RE_HUNK_EMPTY_BODY_LINE.match(line)
+
+                if not valid_line:
+                    raise UnidiffParseError(
+                        'Hunk diff line expected: %s' % line)
+
+                line_type = valid_line.group('line_type')
+                if line_type == LINE_TYPE_EMPTY:
+                    line_type = LINE_TYPE_CONTEXT
+
+                value = valid_line.group('value')
+                original_line = Line(value, line_type=line_type)
+
+                if line_type == LINE_TYPE_ADDED:
+                    original_line.target_line_no = target_line_no
+                    target_line_no += 1
+                elif line_type == LINE_TYPE_REMOVED:
+                    original_line.source_line_no = source_line_no
+                    source_line_no += 1
+                elif line_type == LINE_TYPE_CONTEXT:
+                    original_line.target_line_no = target_line_no
+                    original_line.source_line_no = source_line_no
+                    target_line_no += 1
+                    source_line_no += 1
+                elif line_type == LINE_TYPE_NO_NEWLINE:
+                    pass
+                else:
+                    original_line = None
 
             # stop parsing if we got past expected number of lines
             if (source_line_no > expected_source_end or
@@ -290,6 +330,11 @@ class PatchedFile(list):
         if (source_line_no < expected_source_end or
                 target_line_no < expected_target_end):
             raise UnidiffParseError('Hunk is shorter than expected')
+
+        if metadata_only:
+            # HACK: set fixed calculated values when metadata_only is enabled
+            hunk._added = added
+            hunk._removed = removed
 
         self.append(hunk)
 
@@ -360,7 +405,7 @@ class PatchedFile(list):
 class PatchSet(list):
     """A list of PatchedFiles."""
 
-    def __init__(self, f, encoding=None):
+    def __init__(self, f, encoding=None, metadata_only=False):
         super(PatchSet, self).__init__()
 
         # convert string inputs to StringIO objects
@@ -370,7 +415,10 @@ class PatchSet(list):
         # make sure we pass an iterator object to parse
         data = iter(f)
         # if encoding is None, assume we are reading unicode data
-        self._parse(data, encoding=encoding)
+        # when metadata_only is True, only perform a minimal metadata parsing
+        # (ie. hunks without content) which is around 2.5-6 times faster;
+        # it will still validate the diff metadata consistency and get counts
+        self._parse(data, encoding=encoding, metadata_only=metadata_only)
 
     def __repr__(self):
         return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
@@ -378,7 +426,7 @@ class PatchSet(list):
     def __str__(self):
         return ''.join(unicode(patched_file) for patched_file in self)
 
-    def _parse(self, diff, encoding):
+    def _parse(self, diff, encoding, metadata_only):
         current_file = None
         patch_info = None
 
@@ -449,7 +497,7 @@ class PatchSet(list):
             if is_hunk_header:
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
-                current_file._parse_hunk(line, diff, encoding)
+                current_file._parse_hunk(line, diff, encoding, metadata_only)
                 continue
 
             # check for no newline marker

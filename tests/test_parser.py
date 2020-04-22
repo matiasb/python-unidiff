@@ -114,10 +114,10 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(lines[12], '@@ -5,16 +11,10 @@')
         self.assertEqual(lines[31], '@@ -22,3 +22,7 @@')
 
-    def test_parse_sample(self):
+    def _test_parse_sample(self, metadata_only):
         """Parse sample file."""
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
-            res = PatchSet(diff_file)
+            res = PatchSet(diff_file, metadata_only=metadata_only)
 
         # three file in the patch
         self.assertEqual(len(res), 3)
@@ -163,6 +163,12 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(res.added, 21)
         self.assertEqual(res.removed, 17)
+
+    def test_parse_sample_full(self):
+        self._test_parse_sample(metadata_only=False)
+
+    def test_parse_sample_metadata_only(self):
+        self._test_parse_sample(metadata_only=True)
 
     def test_patchset_compare(self):
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
@@ -315,6 +321,38 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(target_line_nos, expected_target_line_nos)
         self.assertEqual(source_line_nos, expected_source_line_nos)
         self.assertEqual(diff_line_nos, expected_diff_line_nos)
+
+    def test_diff_hunk_positions(self):
+        with open(self.sample_file, 'rb') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8')
+        self.do_test_diff_hunk_positions(res)
+
+    def test_diff_metadata_only(self):
+        with open(self.sample_file, 'rb') as diff_file:
+            res = PatchSet(diff_file, encoding='utf-8', metadata_only=True)
+        self.do_test_diff_hunk_positions(res)
+
+    def do_test_diff_hunk_positions(self, res):
+        hunk_positions = []
+        for diff_file in res:
+            for hunk in diff_file:
+                hunk_positions.append((hunk.source_start, hunk.target_start,
+                                       hunk.source_length, hunk.target_length))
+
+        expected_hunk_positions = [
+            # File: 1, Hunk: 1
+            (1, 1, 3, 9),
+            # File: 1, Hunk: 2
+            (5, 11, 16, 10),
+            # File: 1, Hunk: 3
+            (22, 22, 3, 7),
+            # File: 2, Hunk: 1
+            (0, 1, 0, 9),
+            # File: 3, Hunk: 1
+            (1, 0, 9, 0)
+        ]
+
+        self.assertEqual(hunk_positions, expected_hunk_positions)
 
 
 class TestVCSSamples(unittest.TestCase):
