@@ -1,6 +1,15 @@
 History
 -------
 
+0.6.0 - 2020-05-07
+----------------
+
+* Updated PatchSet constructor to accept an optional (default to False)
+metadata_only parameter to only keep diff metadata information without
+the diff text data (better performance).
+* Identify and track changed binary files.
+* Added support for git rename syntax.
+
 0.5.5 - 2018-01-03
 ------------------
 

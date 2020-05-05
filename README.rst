@@ -117,6 +117,15 @@ Finally, you can also instantiate :code:`PatchSet` passing any iterable (and enc
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
+If you don't need to be able to rebuild the original unified diff input, you can pass
+:code:`metadata_only=True` (defaults to :code:`False`), which should help making the
+parsing more efficient:
+
+::
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8', metadata_only=True)
+
 
 References
 ----------
