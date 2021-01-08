@@ -513,6 +513,11 @@ class PatchSet(list):
                 current_file._append_trailing_empty_line()
                 continue
 
+            # if nothing has matched above then this line is a patch info
+            if patch_info is None:
+                current_file = None
+                patch_info = PatchInfo()
+
             is_binary_diff = RE_BINARY_DIFF.match(line)
             if is_binary_diff:
                 source_file = is_binary_diff.group('source_filename')
@@ -525,10 +530,6 @@ class PatchSet(list):
                 current_file = None
                 continue
 
-            # if nothing has matched above then this line is a patch info
-            if patch_info is None:
-                current_file = None
-                patch_info = PatchInfo()
             patch_info.append(line)
 
     @classmethod
