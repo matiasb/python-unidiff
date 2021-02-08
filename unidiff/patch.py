@@ -462,6 +462,7 @@ class PatchSet(list):
                     patch_info, source_file, target_file, None, None,
                     is_rename=True)
                 self.append(current_file)
+                patch_info = None
                 continue
 
             # check for source file header

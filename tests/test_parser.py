@@ -411,13 +411,29 @@ class TestVCSSamples(unittest.TestCase):
         with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
             res = PatchSet(diff_file)
 
-        self.assertEqual(len(res), 1)
+        self.assertEqual(len(res), 4)
 
         patch = res[0]
         self.assertTrue(patch.is_rename)
+        self.assertEqual(patch.added, 0)
+        self.assertEqual(patch.removed, 0)
+
+        patch = res[1]
+        self.assertFalse(patch.is_rename)
         self.assertEqual(patch.added, 1)
         self.assertEqual(patch.removed, 1)
-        self.assertEqual(len(res.modified_files), 1)
+
+        patch = res[2]
+        self.assertTrue(patch.is_rename)
+        self.assertEqual(patch.added, 0)
+        self.assertEqual(patch.removed, 0)
+
+        patch = res[3]
+        self.assertFalse(patch.is_rename)
+        self.assertEqual(patch.added, 1)
+        self.assertEqual(patch.removed, 1)
+
+        self.assertEqual(len(res.modified_files), 4)
         self.assertEqual(len(res.added_files), 0)
         self.assertEqual(len(res.removed_files), 0)
 

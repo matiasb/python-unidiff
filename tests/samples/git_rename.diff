@@ -11,3 +11,17 @@ index a071991..4dbab21 100644
  Some content
 -Some content
 +Some modified content
+
+diff --git a/oldfile b/newfile
+similarity index 85%
+rename from oldfile
+rename to newfile
+index a071991..4dbab21 100644
+--- a/oldfile
++++ b/newfile
+@@ -9,4 +9,4 @@ Some content
+ Some content
+ Some content
+ Some content
+-Some content
++Some modified content
