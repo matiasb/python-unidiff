@@ -430,8 +430,7 @@ class PatchSet(list):
         current_file = None
         patch_info = None
 
-        diff = enumerate(diff, 1)
-        for unused_diff_line_no, line in diff:
+        for line in diff:
             if encoding is not None:
                 line = line.decode(encoding)
 
