@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2020 Matias Bordese
+# Copyright (c) 2014-2021 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -246,7 +246,7 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[0].is_added_file)
         self.assertTrue(res[0].is_binary_file)
 
-        # second file is added
+        # second file is modified
         self.assertTrue(res[1].is_modified_file)
         self.assertFalse(res[1].is_removed_file)
         self.assertFalse(res[1].is_added_file)
@@ -411,15 +411,26 @@ class TestVCSSamples(unittest.TestCase):
         with codecs.open(file_path, 'r', encoding='utf-8') as diff_file:
             res = PatchSet(diff_file)
 
-        self.assertEqual(len(res), 1)
-
-        patch = res[0]
-        self.assertTrue(patch.is_rename)
-        self.assertEqual(patch.added, 1)
-        self.assertEqual(patch.removed, 1)
-        self.assertEqual(len(res.modified_files), 1)
+        self.assertEqual(len(res), 3)
+        self.assertEqual(len(res.modified_files), 3)
         self.assertEqual(len(res.added_files), 0)
         self.assertEqual(len(res.removed_files), 0)
+
+        # renamed and modified files
+        for patch in res[:2]:
+            self.assertTrue(patch.is_rename)
+            self.assertEqual(patch.added, 1)
+            self.assertEqual(patch.removed, 1)
+        # renamed file under sub-path
+        patch = res[2]
+        self.assertTrue(patch.is_rename)
+        self.assertEqual(patch.added, 0)
+        self.assertEqual(patch.removed, 0)
+        # confirm the full path is in source/target filenames
+        self.assertEqual(patch.source_file, 'a/sub/onefile')
+        self.assertEqual(patch.target_file, 'b/sub/otherfile')
+        # check path is the target path
+        self.assertEqual(patch.path, 'sub/otherfile')
 
         # check that original diffs and those produced
         # by unidiff are the same
