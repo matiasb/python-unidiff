@@ -1,6 +1,14 @@
 History
 -------
 
+0.7.0 - 2021-08-16
+------------------
+
+* Fixed issues handling multiple git renames.
+* Renamed files return target filename as PatchedFile.path.
+* Fixed error when first change is a binary file.
+* Added source code type hints.
+
 0.6.0 - 2020-05-07
 ----------------
 
