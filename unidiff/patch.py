@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2020 Matias Bordese
+# Copyright (c) 2014-2021 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,17 +31,17 @@ import sys
 
 from unidiff.constants import (
     DEFAULT_ENCODING,
+    DEV_NULL,
     LINE_TYPE_ADDED,
     LINE_TYPE_CONTEXT,
     LINE_TYPE_EMPTY,
     LINE_TYPE_REMOVED,
     LINE_TYPE_NO_NEWLINE,
     LINE_VALUE_NO_NEWLINE,
+    RE_DIFF_GIT_HEADER,
     RE_HUNK_BODY_LINE,
     RE_HUNK_EMPTY_BODY_LINE,
     RE_HUNK_HEADER,
-    RE_RENAME_SOURCE_FILENAME,
-    RE_RENAME_TARGET_FILENAME,
     RE_SOURCE_FILENAME,
     RE_TARGET_FILENAME,
     RE_NO_NEWLINE_MARKER,
@@ -355,18 +355,15 @@ class PatchedFile(list):
     @property
     def path(self):
         """Return the file path abstracted from VCS."""
-        if (self.source_file.startswith('a/') and
-                self.target_file.startswith('b/')):
-            filepath = self.source_file[2:]
-        elif (self.source_file.startswith('a/') and
-              self.target_file == '/dev/null'):
-            filepath = self.source_file[2:]
-        elif (self.target_file is not None and
-              self.target_file.startswith('b/') and
-              self.source_file == '/dev/null'):
-            filepath = self.target_file[2:]
-        else:
-            filepath = self.source_file
+        filepath = self.source_file
+        if filepath in (None, DEV_NULL) or (
+                self.is_rename and self.target_file not in (None, DEV_NULL)):
+            # if this is a rename, prefer the target filename
+            filepath = self.target_file
+
+        if filepath.startswith('a/') or filepath.startswith('b/'):
+            filepath = filepath[2:]
+
         return filepath
 
     @property
@@ -382,7 +379,7 @@ class PatchedFile(list):
     @property
     def is_added_file(self):
         """Return True if this patch adds the file."""
-        if self.source_file == '/dev/null':
+        if self.source_file == DEV_NULL:
             return True
         return (len(self) == 1 and self[0].source_start == 0 and
                 self[0].source_length == 0)
@@ -390,7 +387,7 @@ class PatchedFile(list):
     @property
     def is_removed_file(self):
         """Return True if this patch removes the file."""
-        if self.target_file == '/dev/null':
+        if self.target_file == DEV_NULL:
             return True
         return (len(self) == 1 and self[0].target_start == 0 and
                 self[0].target_length == 0)
@@ -435,33 +432,22 @@ class PatchSet(list):
             if encoding is not None:
                 line = line.decode(encoding)
 
-            # check for a git rename, source file
-            is_rename_source_filename = RE_RENAME_SOURCE_FILENAME.match(line)
-            if is_rename_source_filename:
-                # prefix with 'a/' to match expected git source format
-                source_file = (
-                    'a/' + is_rename_source_filename.group('filename'))
-                # keep line as patch_info
+            # check for a git file rename
+            is_diff_git_header = RE_DIFF_GIT_HEADER.match(line)
+            if is_diff_git_header:
+                if patch_info is None:
+                    patch_info = PatchInfo()
+                source_file = is_diff_git_header.group('source')
+                target_file = is_diff_git_header.group('target')
+                if (source_file != DEV_NULL
+                        and target_file != DEV_NULL
+                        and source_file[2:] != target_file[2:]):
+                    # this is a renamed file
+                    current_file = PatchedFile(
+                        patch_info, source_file, target_file, None, None,
+                        is_rename=True)
+                    self.append(current_file)
                 patch_info.append(line)
-                # reset current file
-                current_file = None
-                continue
-
-            # check for a git rename, target file
-            is_rename_target_filename = RE_RENAME_TARGET_FILENAME.match(line)
-            if is_rename_target_filename:
-                if current_file is not None:
-                    raise UnidiffParseError('Target without source: %s' % line)
-                # prefix with 'b/' to match expected git source format
-                target_file = (
-                    'b/' + is_rename_target_filename.group('filename'))
-                # keep line as patch_info
-                patch_info.append(line)
-                # add current file to PatchSet
-                current_file = PatchedFile(
-                    patch_info, source_file, target_file, None, None,
-                    is_rename=True)
-                self.append(current_file)
                 continue
 
             # check for source file header
@@ -495,6 +481,7 @@ class PatchSet(list):
             # check for hunk header
             is_hunk_header = RE_HUNK_HEADER.match(line)
             if is_hunk_header:
+                patch_info = None
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
                 current_file._parse_hunk(line, diff, encoding, metadata_only)

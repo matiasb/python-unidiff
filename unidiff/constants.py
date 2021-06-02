@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2020 Matias Bordese
+# Copyright (c) 2014-2021 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,9 +35,9 @@ RE_TARGET_FILENAME = re.compile(
     r'^\+\+\+ (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
 
 
-# git renamed files support
-RE_RENAME_SOURCE_FILENAME = re.compile(r'^rename from (?P<filename>[^\t\n]+)')
-RE_RENAME_TARGET_FILENAME = re.compile(r'^rename to (?P<filename>[^\t\n]+)')
+# check diff git line for git renamed files support
+RE_DIFF_GIT_HEADER = re.compile(
+    r'^diff --git (?P<source>a/[^\t\n]+) (?P<target>b/[^\t\n]+)')
 
 
 # @@ (source offset, length) (target offset, length) @@ (section header)
@@ -63,6 +63,7 @@ RE_BINARY_DIFF = re.compile(
 
 DEFAULT_ENCODING = 'UTF-8'
 
+DEV_NULL = '/dev/null'
 LINE_TYPE_ADDED = '+'
 LINE_TYPE_REMOVED = '-'
 LINE_TYPE_CONTEXT = ' '
