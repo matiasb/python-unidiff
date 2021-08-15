@@ -28,7 +28,6 @@ from __future__ import unicode_literals
 
 import codecs
 import sys
-from typing import Iterable, Optional, Union
 
 from unidiff.constants import (
     DEFAULT_ENCODING,
@@ -63,6 +62,7 @@ if PY2:
         return cls
 else:
     from io import StringIO
+    from typing import Iterable, Optional, Union
     open_file = open
     make_str = str
     implements_to_string = lambda x: x
