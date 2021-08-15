@@ -3,8 +3,8 @@ Unidiff
 
 Simple Python library to parse and interact with unified diff data.
 
-.. image:: https://travis-ci.org/matiasb/python-unidiff.svg?branch=master
-    :target: https://travis-ci.org/matiasb/python-unidiff
+.. image:: https://www.travis-ci.com/matiasb/python-unidiff.svg?branch=master
+    :target: https://travis-ci.com/matiasb/python-unidiff
 
 Installing unidiff
 ------------------
