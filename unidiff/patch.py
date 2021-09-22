@@ -557,10 +557,10 @@ class PatchSet(list):
             patch_info.append(line)
 
     @classmethod
-    def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None):
+    def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None, newline=None):
         # type: (str, str, Optional[str]) -> PatchSet
         """Return a PatchSet instance given a diff filename."""
-        with open_file(filename, 'r', encoding=encoding, errors=errors) as f:
+        with open_file(filename, 'r', encoding=encoding, errors=errors, newline=newline) as f:
             instance = cls(f)
         return instance
 
