@@ -52,8 +52,10 @@ from unidiff.errors import UnidiffParseError
 
 PY2 = sys.version_info[0] == 2
 if PY2:
+    import io
     from StringIO import StringIO
-    open_file = codecs.open
+    # open_file = codecs.open
+    open_file = io.open
     make_str = lambda x: x.encode(DEFAULT_ENCODING)
 
     def implements_to_string(cls):
