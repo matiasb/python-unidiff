@@ -237,7 +237,8 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertRaises(UnidiffParseError, PatchSet.from_filename, utf8_file)
 
         ps1 = PatchSet.from_filename(utf8_file, newline='\n')
-        with open(utf8_file, 'r', newline='\n') as diff_file:
+        import io
+        with io.open(utf8_file, 'r', newline='\n') as diff_file:
             ps2 = PatchSet(diff_file)
 
         self.assertEqual(ps1, ps2)
