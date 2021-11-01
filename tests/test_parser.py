@@ -231,6 +231,18 @@ class TestUnidiffParser(unittest.TestCase):
         with open(utf8_file, 'r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
+    def test_from_filename_with_cr_in_diff_text_files(self):
+        """Parse git diff text files that contain CR"""
+        utf8_file = os.path.join(self.samples_dir, 'samples/git_cr.diff')
+        self.assertRaises(UnidiffParseError, PatchSet.from_filename, utf8_file)
+
+        ps1 = PatchSet.from_filename(utf8_file, newline='\n')
+        import io
+        with io.open(utf8_file, 'r', newline='\n') as diff_file:
+            ps2 = PatchSet(diff_file)
+
+        self.assertEqual(ps1, ps2)
+
     def test_parse_diff_with_new_and_modified_binary_files(self):
         """Parse git diff file with newly added and modified binaries files."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
