@@ -39,6 +39,10 @@ RE_TARGET_FILENAME = re.compile(
 RE_DIFF_GIT_HEADER = re.compile(
     r'^diff --git (?P<source>a/[^\t\n]+) (?P<target>b/[^\t\n]+)')
 
+# check diff git new file marker `new file mode 100644`
+RE_DIFF_GIT_NEW_FILE = re.compile(
+    r'^new file mode \d+\n$')
+
 
 # @@ (source offset, length) (target offset, length) @@ (section header)
 RE_HUNK_HEADER = re.compile(

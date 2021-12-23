@@ -39,6 +39,7 @@ from unidiff.constants import (
     LINE_TYPE_NO_NEWLINE,
     LINE_VALUE_NO_NEWLINE,
     RE_DIFF_GIT_HEADER,
+    RE_DIFF_GIT_NEW_FILE,
     RE_HUNK_BODY_LINE,
     RE_HUNK_EMPTY_BODY_LINE,
     RE_HUNK_HEADER,
@@ -63,7 +64,7 @@ if PY2:
         return cls
 else:
     from io import StringIO
-    from typing import Iterable, Optional, Union
+    from typing import Iterable, Optional, Union, Tuple
     open_file = open
     make_str = str
     implements_to_string = lambda x: x
@@ -463,6 +464,7 @@ class PatchSet(list):
     def _parse(self, diff, encoding, metadata_only):
         # type: (StringIO, Optional[str], bool) -> None
         current_file = None
+        is_file_appended = False
         patch_info = None
 
         diff = enumerate(diff, 1)
@@ -473,8 +475,10 @@ class PatchSet(list):
             # check for a git file rename
             is_diff_git_header = RE_DIFF_GIT_HEADER.match(line)
             if is_diff_git_header:
-                if patch_info is None:
-                    patch_info = PatchInfo()
+                if current_file is not None and not is_file_appended:
+                    self.append(current_file)
+                    current_file = None
+                patch_info = PatchInfo()
                 source_file = is_diff_git_header.group('source')
                 target_file = is_diff_git_header.group('target')
                 if (source_file != DEV_NULL
@@ -485,6 +489,22 @@ class PatchSet(list):
                         patch_info, source_file, target_file, None, None,
                         is_rename=True)
                     self.append(current_file)
+                    is_file_appended = True
+                if source_file[2:] == target_file[2:]:
+                    # preserve current_file for an empty new file
+                    current_file = PatchedFile(
+                        patch_info, source_file, target_file,
+                    )
+                    is_file_appended = False
+                patch_info.append(line)
+                continue
+
+            # check for a git empty new file
+            is_diff_git_new_file = RE_DIFF_GIT_NEW_FILE.match(line)
+            if is_diff_git_new_file:
+                if current_file is None or patch_info is None:
+                    raise UnidiffParseError('Unexpected new file found: %s' % line)
+                current_file.source_file = DEV_NULL
                 patch_info.append(line)
                 continue
 
@@ -498,6 +518,7 @@ class PatchSet(list):
                 if current_file is not None and not (current_file.is_rename and
                         current_file.source_file == source_file):
                     current_file = None
+                    is_file_appended = False
                 continue
 
             # check for target file header
@@ -513,6 +534,7 @@ class PatchSet(list):
                         patch_info, source_file, target_file,
                         source_timestamp, target_timestamp)
                     self.append(current_file)
+                    is_file_appended = True
                     patch_info = None
                 continue
 
@@ -553,9 +575,13 @@ class PatchSet(list):
                 self.append(current_file)
                 patch_info = None
                 current_file = None
+                is_file_appended = True
                 continue
 
             patch_info.append(line)
+
+        if current_file is not None and not is_file_appended:
+            self.append(current_file)
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None, newline=None):
