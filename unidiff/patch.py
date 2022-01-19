@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2021 Matias Bordese
+# Copyright (c) 2014-2022 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,7 @@ from unidiff.constants import (
     LINE_TYPE_REMOVED,
     LINE_TYPE_NO_NEWLINE,
     LINE_VALUE_NO_NEWLINE,
+    RE_DIFF_GIT_DELETED_FILE,
     RE_DIFF_GIT_HEADER,
     RE_DIFF_GIT_NEW_FILE,
     RE_HUNK_BODY_LINE,
@@ -64,7 +65,7 @@ if PY2:
         return cls
 else:
     from io import StringIO
-    from typing import Iterable, Optional, Union, Tuple
+    from typing import Iterable, Optional, Union
     open_file = open
     make_str = str
     implements_to_string = lambda x: x
@@ -234,7 +235,7 @@ class PatchedFile(list):
 
     def __init__(self, patch_info=None, source='', target='',
                  source_timestamp=None, target_timestamp=None,
-                 is_binary_file=False, is_rename=False):
+                 is_binary_file=False):
         # type: (Optional[PatchInfo], str, str, Optional[str], Optional[str], bool, bool) -> None
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
@@ -243,7 +244,6 @@ class PatchedFile(list):
         self.target_file = target
         self.target_timestamp = target_timestamp
         self.is_binary_file = is_binary_file
-        self.is_rename = is_rename
 
     def __repr__(self):
         # type: () -> str
@@ -409,6 +409,12 @@ class PatchedFile(list):
         return sum([hunk.removed for hunk in self])
 
     @property
+    def is_rename(self):
+        return (self.source_file != DEV_NULL
+            and self.target_file != DEV_NULL
+            and self.source_file[2:] != self.target_file[2:])
+
+    @property
     def is_added_file(self):
         # type: () -> bool
         """Return True if this patch adds the file."""
@@ -464,7 +470,6 @@ class PatchSet(list):
     def _parse(self, diff, encoding, metadata_only):
         # type: (StringIO, Optional[str], bool) -> None
         current_file = None
-        is_file_appended = False
         patch_info = None
 
         diff = enumerate(diff, 1)
@@ -475,36 +480,30 @@ class PatchSet(list):
             # check for a git file rename
             is_diff_git_header = RE_DIFF_GIT_HEADER.match(line)
             if is_diff_git_header:
-                if current_file is not None and not is_file_appended:
-                    self.append(current_file)
-                    current_file = None
                 patch_info = PatchInfo()
                 source_file = is_diff_git_header.group('source')
                 target_file = is_diff_git_header.group('target')
-                if (source_file != DEV_NULL
-                        and target_file != DEV_NULL
-                        and source_file[2:] != target_file[2:]):
-                    # this is a renamed file
-                    current_file = PatchedFile(
-                        patch_info, source_file, target_file, None, None,
-                        is_rename=True)
-                    self.append(current_file)
-                    is_file_appended = True
-                if source_file[2:] == target_file[2:]:
-                    # preserve current_file for an empty new file
-                    current_file = PatchedFile(
-                        patch_info, source_file, target_file,
-                    )
-                    is_file_appended = False
+                current_file = PatchedFile(
+                    patch_info, source_file, target_file, None, None)
+                self.append(current_file)
                 patch_info.append(line)
                 continue
 
-            # check for a git empty new file
+            # check for a git new file
             is_diff_git_new_file = RE_DIFF_GIT_NEW_FILE.match(line)
             if is_diff_git_new_file:
                 if current_file is None or patch_info is None:
                     raise UnidiffParseError('Unexpected new file found: %s' % line)
                 current_file.source_file = DEV_NULL
+                patch_info.append(line)
+                continue
+
+            # check for a git deleted file
+            is_diff_git_deleted_file = RE_DIFF_GIT_DELETED_FILE.match(line)
+            if is_diff_git_deleted_file:
+                if current_file is None or patch_info is None:
+                    raise UnidiffParseError('Unexpected deleted file found: %s' % line)
+                current_file.target_file = DEV_NULL
                 patch_info.append(line)
                 continue
 
@@ -515,27 +514,29 @@ class PatchSet(list):
                 source_timestamp = is_source_filename.group('timestamp')
                 # reset current file, unless we are processing a rename
                 # (in that case, source files should match)
-                if current_file is not None and not (current_file.is_rename and
+                if current_file is not None and not (
                         current_file.source_file == source_file):
                     current_file = None
-                    is_file_appended = False
+                elif current_file is not None:
+                    current_file.source_timestamp = source_timestamp
                 continue
 
             # check for target file header
             is_target_filename = RE_TARGET_FILENAME.match(line)
             if is_target_filename:
-                if current_file is not None and not current_file.is_rename:
-                    raise UnidiffParseError('Target without source: %s' % line)
                 target_file = is_target_filename.group('filename')
                 target_timestamp = is_target_filename.group('timestamp')
+                if current_file is not None and not (current_file.target_file == target_file):
+                    raise UnidiffParseError('Target without source: %s' % line)
                 if current_file is None:
                     # add current file to PatchSet
                     current_file = PatchedFile(
                         patch_info, source_file, target_file,
                         source_timestamp, target_timestamp)
                     self.append(current_file)
-                    is_file_appended = True
                     patch_info = None
+                else:
+                    current_file.target_timestamp = target_timestamp
                 continue
 
             # check for hunk header
@@ -570,18 +571,17 @@ class PatchSet(list):
                 source_file = is_binary_diff.group('source_filename')
                 target_file = is_binary_diff.group('target_filename')
                 patch_info.append(line)
-                current_file = PatchedFile(
-                    patch_info, source_file, target_file, is_binary_file=True)
-                self.append(current_file)
+                if current_file is not None:
+                    current_file.is_binary_file = True
+                else:
+                    current_file = PatchedFile(
+                        patch_info, source_file, target_file, is_binary_file=True)
+                    self.append(current_file)
                 patch_info = None
                 current_file = None
-                is_file_appended = True
                 continue
 
             patch_info.append(line)
-
-        if current_file is not None and not is_file_appended:
-            self.append(current_file)
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None, newline=None):

@@ -2,7 +2,7 @@ diff --git a/src/test/org/apache/commons/math/util/ExpandableDoubleArrayTest.jav
 new file mode 100644
 index 000000000..2b38fa232
 --- /dev/null
-+++ b/a.txt
++++ b/src/test/org/apache/commons/math/util/ExpandableDoubleArrayTest.java
 @@ -0,0 +1,3 @@
 + "This line is broken into two lines by CR. " +		"but it should be treated as one line in the text diff file"
 + "This has no CR"
