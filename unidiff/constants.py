@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2021 Matias Bordese
+# Copyright (c) 2014-2022 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,9 +39,11 @@ RE_TARGET_FILENAME = re.compile(
 RE_DIFF_GIT_HEADER = re.compile(
     r'^diff --git (?P<source>a/[^\t\n]+) (?P<target>b/[^\t\n]+)')
 
+# check diff git new file marker `deleted file mode 100644`
+RE_DIFF_GIT_DELETED_FILE = re.compile(r'^deleted file mode \d+\n$')
+
 # check diff git new file marker `new file mode 100644`
-RE_DIFF_GIT_NEW_FILE = re.compile(
-    r'^new file mode \d+\n$')
+RE_DIFF_GIT_NEW_FILE = re.compile(r'^new file mode \d+\n$')
 
 
 # @@ (source offset, length) (target offset, length) @@ (section header)
