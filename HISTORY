@@ -1,6 +1,12 @@
 History
 -------
 
+0.7.1 - 2022-01-27
+------------------
+
+* Improved git added/deleted file detection.
+* Added `newline` optional param when parsing `from_filename`.
+
 0.7.0 - 2021-08-16
 ------------------
 
