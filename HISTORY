@@ -1,6 +1,11 @@
 History
 -------
 
+0.7.2 - 2022-01-28
+------------------
+
+* Fixed issue when parsing git diff header generated with `--no-prefix`.
+
 0.7.1 - 2022-01-27
 ------------------
 
