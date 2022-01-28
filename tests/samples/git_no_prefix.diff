@@ -1,0 +1,30 @@
+diff --git file1 file1
+deleted file mode 100644
+index 42f90fd..0000000
+--- file1
++++ /dev/null
+@@ -1,3 +0,0 @@
+-line11
+-line12
+-line13
+diff --git file2 file2
+index c337bf1..1cb02b9 100644
+--- file2
++++ file2
+@@ -4,0 +5,3 @@ line24
++line24n
++line24n2
++line24n3
+@@ -15,0 +19,3 @@ line215
++line215n
++line215n2
++line215n3
+diff --git file3 file3
+new file mode 100644
+index 0000000..632e269
+--- /dev/null
++++ file3
+@@ -0,0 +1,3 @@
++line31
++line32
++line33

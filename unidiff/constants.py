@@ -37,7 +37,7 @@ RE_TARGET_FILENAME = re.compile(
 
 # check diff git line for git renamed files support
 RE_DIFF_GIT_HEADER = re.compile(
-    r'^diff --git (?P<source>a/[^\t\n]+) (?P<target>b/[^\t\n]+)')
+    r'^diff --git (?P<source>(a/)?[^\t\n]+) (?P<target>(b/)?[^\t\n]+)')
 
 # check diff git new file marker `deleted file mode 100644`
 RE_DIFF_GIT_DELETED_FILE = re.compile(r'^deleted file mode \d+\n$')
