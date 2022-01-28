@@ -291,6 +291,28 @@ class TestUnidiffParser(unittest.TestCase):
         res2 = PatchSet(str(res1))
         self.assertEqual(res1, res2)
 
+    def test_parse_diff_git_no_prefix(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/git_no_prefix.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res = PatchSet(diff_file)
+
+        self.assertEqual(len(res), 3)
+
+        self.assertEqual(res[0].source_file, 'file1')
+        self.assertEqual(res[0].target_file, '/dev/null')
+        self.assertTrue(res[0].is_removed_file)
+        self.assertEqual(res[0].path, 'file1')
+
+        self.assertEqual(res[1].source_file, 'file2')
+        self.assertEqual(res[1].target_file, 'file2')
+        self.assertTrue(res[1].is_modified_file)
+        self.assertEqual(res[1].path, 'file2')
+
+        self.assertEqual(res[2].source_file, '/dev/null')
+        self.assertEqual(res[2].target_file, 'file3')
+        self.assertTrue(res[2].is_added_file)
+        self.assertEqual(res[2].path, 'file3')
+
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
