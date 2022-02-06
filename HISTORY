@@ -1,6 +1,11 @@
 History
 -------
 
+0.7.3 - 2022-02-06
+------------------
+
+* Fixed RE_BINARY_DIFF regex to make it a raw string.
+
 0.7.2 - 2022-01-28
 ------------------
 
