@@ -40,6 +40,7 @@ from unidiff.constants import (
     LINE_VALUE_NO_NEWLINE,
     RE_DIFF_GIT_DELETED_FILE,
     RE_DIFF_GIT_HEADER,
+    RE_DIFF_GIT_HEADER_NO_PREFIX,
     RE_DIFF_GIT_NEW_FILE,
     RE_HUNK_BODY_LINE,
     RE_HUNK_EMPTY_BODY_LINE,
@@ -478,7 +479,7 @@ class PatchSet(list):
                 line = line.decode(encoding)
 
             # check for a git file rename
-            is_diff_git_header = RE_DIFF_GIT_HEADER.match(line)
+            is_diff_git_header = RE_DIFF_GIT_HEADER.match(line) or RE_DIFF_GIT_HEADER_NO_PREFIX.match(line)
             if is_diff_git_header:
                 patch_info = PatchInfo()
                 source_file = is_diff_git_header.group('source')

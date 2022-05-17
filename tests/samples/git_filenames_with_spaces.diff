@@ -1,0 +1,7 @@
+diff --git a/has spaces/t.sql b/has spaces/t.sql
+new file mode 100644
+index 0000000..8a9b485
+--- /dev/null
++++ b/has spaces/t.sql
+@@ -0,0 +1 @@
++select * FROM t;
