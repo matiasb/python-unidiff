@@ -313,6 +313,18 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[2].is_added_file)
         self.assertEqual(res[2].path, 'file3')
 
+    def test_parse_filename_with_spaces(self):
+        filename = os.path.join(self.samples_dir, 'samples/git_filenames_with_spaces.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+
+        self.assertEqual(res[0].source_file, '/dev/null')
+        self.assertEqual(res[0].target_file, 'b/has spaces/t.sql')
+        self.assertTrue(res[0].is_added_file)
+        self.assertEqual(res[0].path, 'has spaces/t.sql')
+
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
