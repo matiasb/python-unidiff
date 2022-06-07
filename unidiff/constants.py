@@ -42,10 +42,10 @@ RE_DIFF_GIT_HEADER_NO_PREFIX = re.compile(
     r'^diff --git (?P<source>[^\t\n]+) (?P<target>[^\t\n]+)')
 
 # check diff git new file marker `deleted file mode 100644`
-RE_DIFF_GIT_DELETED_FILE = re.compile(r'^deleted file mode \d+\n$')
+RE_DIFF_GIT_DELETED_FILE = re.compile(r'^deleted file mode \d+$')
 
 # check diff git new file marker `new file mode 100644`
-RE_DIFF_GIT_NEW_FILE = re.compile(r'^new file mode \d+\n$')
+RE_DIFF_GIT_NEW_FILE = re.compile(r'^new file mode \d+$')
 
 
 # @@ (source offset, length) (target offset, length) @@ (section header)

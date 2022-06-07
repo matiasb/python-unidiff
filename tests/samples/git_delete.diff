@@ -1,0 +1,16 @@
+diff --git a/somefile.c b/somefile.c
+deleted file mode 100644
+index abcdefbbb8..0000000000
+--- a/somefile.c
++++ /dev/null
+@@ -1,10 +0,0 @@
+-/**
+- *  @file somefile.c
+- */
+-#include <stdio.h>
+-
+-int main(int argc, cahr *argv[])
+-{
+-	printf("Hello World\n");
+-	return 0;
+-}

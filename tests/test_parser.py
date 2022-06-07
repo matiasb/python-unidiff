@@ -325,6 +325,16 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[0].is_added_file)
         self.assertEqual(res[0].path, 'has spaces/t.sql')
 
+    def test_deleted_file(self):
+        filename = os.path.join(self.samples_dir, 'samples/git_delete.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].source_file, 'a/somefile.c')
+        self.assertEqual(res[0].target_file, '/dev/null')
+        self.assertTrue(res[0].is_removed_file)
+
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
