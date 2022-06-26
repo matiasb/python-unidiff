@@ -1,6 +1,11 @@
 History
 -------
 
+0.7.4 - 2022-06-26
+------------------
+
+* Fixed git diff parsing issues (filename with spaces, only one added/deleted file).
+
 0.7.3 - 2022-02-06
 ------------------
 
