@@ -1,0 +1,7 @@
+diff --git src://foo bar/baz dst://foo bar/baz
+new file mode 100644
+index 00000000000..0a72e5064c8
+--- /dev/null
++++ dst://foo bar/baz
+@@ -0,0 +1,1 @@
++blah
