@@ -38,6 +38,8 @@ RE_TARGET_FILENAME = re.compile(
 # check diff git line for git renamed files support
 RE_DIFF_GIT_HEADER = re.compile(
     r'^diff --git (?P<source>a/[^\t\n]+) (?P<target>b/[^\t\n]+)')
+RE_DIFF_GIT_HEADER_QUOTED = re.compile(
+    r'^diff --git "(?P<source>a/[^\t\n]+)" "(?P<target>b/[^\t\n]+)"')
 RE_DIFF_GIT_HEADER_URI_LIKE = re.compile(
     r'^diff --git (?P<source>.*://[^\t\n]+) (?P<target>.*://[^\t\n]+)')
 RE_DIFF_GIT_HEADER_NO_PREFIX = re.compile(

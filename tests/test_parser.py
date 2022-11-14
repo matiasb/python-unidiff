@@ -337,6 +337,19 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[0].is_added_file)
         self.assertEqual(res[0].path, 'dst://foo bar/baz')
 
+    def test_parse_quoted_filename(self):
+        filename = os.path.join(self.samples_dir, 'samples/git_quoted_filename.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+
+        self.assertEqual(res[0].source_file, '/dev/null')
+        self.assertEqual(res[0].target_file, 'b/A \\303\\242 B.py')
+        self.assertTrue(res[0].is_added_file)
+        self.assertEqual(res[0].path, 'A \\303\\242 B.py')
+
+
     def test_deleted_file(self):
         filename = os.path.join(self.samples_dir, 'samples/git_delete.diff')
         with open(filename) as f:

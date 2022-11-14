@@ -40,6 +40,7 @@ from unidiff.constants import (
     LINE_VALUE_NO_NEWLINE,
     RE_DIFF_GIT_DELETED_FILE,
     RE_DIFF_GIT_HEADER,
+    RE_DIFF_GIT_HEADER_QUOTED,
     RE_DIFF_GIT_HEADER_URI_LIKE,
     RE_DIFF_GIT_HEADER_NO_PREFIX,
     RE_DIFF_GIT_NEW_FILE,
@@ -481,6 +482,7 @@ class PatchSet(list):
 
             # check for a git file rename
             is_diff_git_header = RE_DIFF_GIT_HEADER.match(line) or \
+                RE_DIFF_GIT_HEADER_QUOTED.match(line) or \
                 RE_DIFF_GIT_HEADER_URI_LIKE.match(line) or \
                 RE_DIFF_GIT_HEADER_NO_PREFIX.match(line)
             if is_diff_git_header:
@@ -531,7 +533,10 @@ class PatchSet(list):
                 target_file = is_target_filename.group('filename')
                 target_timestamp = is_target_filename.group('timestamp')
                 if current_file is not None and not (current_file.target_file == target_file):
-                    raise UnidiffParseError('Target without source: %s' % line)
+                    # Test for quoted file name
+                    target_file = _unquote(target_file)
+                    if current_file.target_file != target_file:
+                        raise UnidiffParseError('Target without source: %s' % line)
                 if current_file is None:
                     # add current file to PatchSet
                     current_file = PatchedFile(
@@ -638,3 +643,12 @@ class PatchSet(list):
         # type: () -> int
         """Return the patch total removed lines."""
         return sum([f.removed for f in self])
+
+def _unquote(string):
+    if len(string) <= 1:
+        return string
+    
+    if string[0] == string[-1] == '"':
+        return string[1:-1]
+    
+    return string
