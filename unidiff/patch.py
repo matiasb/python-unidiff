@@ -534,7 +534,7 @@ class PatchSet(list):
                 target_timestamp = is_target_filename.group('timestamp')
                 if current_file is not None and not (current_file.target_file == target_file):
                     # Test for quoted file name
-                    target_file = _unquote(target_file)
+                    target_file = _unquote(target_file.strip())
                     if current_file.target_file != target_file:
                         raise UnidiffParseError('Target without source: %s' % line)
                 if current_file is None:
@@ -645,6 +645,7 @@ class PatchSet(list):
         return sum([f.removed for f in self])
 
 def _unquote(string):
+    """Return an unquoted string, if string is wrapped in quotes"""
     if len(string) <= 1:
         return string
     
