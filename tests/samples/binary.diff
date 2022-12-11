@@ -1,0 +1,23 @@
+From 62ea0eaf7e00170a8fca79f665442f9f44725956 Mon Sep 17 00:00:00 2001
+From: Martin Liska <mliska@suse.cz>
+Date: Fri, 9 Dec 2022 12:05:32 +0100
+Subject: [PATCH] add pixel
+
+---
+ 1x1.png | Bin 0 -> 95 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 1x1.png
+
+diff --git a/1x1.png b/1x1.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1914264c08781d1f30ee0b8482bccf44586f2dc1
+GIT binary patch
+literal 95
+zcmeAS@N?(olHy`uVBq!ia0vp^j3CU&3?x-=hn)ga%mF?ju0VQumF+E%TuG2$FoVOh
+l8)-lem#2$k2*>s01R$G<f$@>z9%CSj!PC{xWt~$(697H@6ZHT9
+
+literal 0
+HcmV?d00001
+
+--
+2.38.1

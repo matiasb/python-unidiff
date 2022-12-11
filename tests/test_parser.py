@@ -434,6 +434,16 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(hunk_positions, expected_hunk_positions)
 
+    def test_binary_patch(self):
+        utf8_file = os.path.join(self.samples_dir, 'samples/binary.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res = PatchSet(diff_file)
+            self.assertEqual(len(res), 1)
+            patch = res[0]
+            self.assertEqual(patch.source_file, '/dev/null')
+            self.assertEqual(patch.target_file, 'b/1x1.png')
+            self.assertTrue(patch.is_binary_file)
+            self.assertTrue(patch.is_added_file)
 
 class TestVCSSamples(unittest.TestCase):
     """Tests for real examples from VCS."""
