@@ -585,6 +585,12 @@ class PatchSet(list):
                 current_file = None
                 continue
 
+            if line == 'GIT binary patch\n':
+                current_file.is_binary_file = True
+                patch_info = None
+                current_file = None
+                continue
+
             patch_info.append(line)
 
     @classmethod
