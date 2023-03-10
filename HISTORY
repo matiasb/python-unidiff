@@ -1,6 +1,12 @@
 History
 -------
 
+0.7.5 - 2023-03-09
+------------------
+
+* Fixed issue with spaces in filename when using custom git prefix.
+* Support binary patch format.
+
 0.7.4 - 2022-06-26
 ------------------
 
