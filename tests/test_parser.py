@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2021 Matias Bordese
+# Copyright (c) 2014-2023 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -336,6 +336,19 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(res[0].target_file, 'dst://foo bar/baz')
         self.assertTrue(res[0].is_added_file)
         self.assertEqual(res[0].path, 'dst://foo bar/baz')
+
+    def test_parse_quoted_filename(self):
+        filename = os.path.join(self.samples_dir, 'samples/git_quoted_filename.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+
+        self.assertEqual(res[0].source_file, '/dev/null')
+        self.assertEqual(res[0].target_file, '"b/A \\303\\242 B.py"')
+        self.assertTrue(res[0].is_added_file)
+        self.assertEqual(res[0].path, '"A \\303\\242 B.py"')
+
 
     def test_deleted_file(self):
         filename = os.path.join(self.samples_dir, 'samples/git_delete.diff')

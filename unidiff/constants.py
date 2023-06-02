@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2022 Matias Bordese
+# Copyright (c) 2014-2023 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,14 @@ import re
 
 
 RE_SOURCE_FILENAME = re.compile(
-    r'^--- (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
+    r'^--- (?P<filename>"?[^\t\n]+"?)(?:\t(?P<timestamp>[^\n]+))?')
 RE_TARGET_FILENAME = re.compile(
-    r'^\+\+\+ (?P<filename>[^\t\n]+)(?:\t(?P<timestamp>[^\n]+))?')
+    r'^\+\+\+ (?P<filename>"?[^\t\n]+"?)(?:\t(?P<timestamp>[^\n]+))?')
 
 
 # check diff git line for git renamed files support
 RE_DIFF_GIT_HEADER = re.compile(
-    r'^diff --git (?P<source>a/[^\t\n]+) (?P<target>b/[^\t\n]+)')
+    r'^diff --git (?P<source>"?a/[^\t\n]+"?) (?P<target>"?b/[^\t\n]+"?)')
 RE_DIFF_GIT_HEADER_URI_LIKE = re.compile(
     r'^diff --git (?P<source>.*://[^\t\n]+) (?P<target>.*://[^\t\n]+)')
 RE_DIFF_GIT_HEADER_NO_PREFIX = re.compile(

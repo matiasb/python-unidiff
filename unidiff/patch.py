@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
-# Copyright (c) 2014-2022 Matias Bordese
+# Copyright (c) 2014-2023 Matias Bordese
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -393,8 +393,15 @@ class PatchedFile(list):
             # if this is a rename, prefer the target filename
             filepath = self.target_file
 
+        quoted = filepath.startswith('"') and filepath.endswith('"')
+        if quoted:
+            filepath = filepath[1:-1]
+
         if filepath.startswith('a/') or filepath.startswith('b/'):
             filepath = filepath[2:]
+
+        if quoted:
+            filepath = '"{}"'.format(filepath)
 
         return filepath
 
