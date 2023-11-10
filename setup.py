@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 NAME = 'unidiff'
 DESCRIPTION = 'Unified diff parsing/metadata extraction library.'
 KEYWORDS = ['unified', 'diff', 'parse', 'metadata']
-URL = 'http://github.com/matiasb/python-unidiff'
+URL = 'https://github.com/matiasb/python-unidiff'
 EMAIL = 'mbordese@gmail.com'
 AUTHOR = 'Matias Bordese'
 LICENSE = 'MIT'

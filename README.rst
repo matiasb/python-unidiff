@@ -17,7 +17,7 @@ Installing unidiff
 Quick start
 -----------
 
-::
+.. code-block:: python
 
     >>> import urllib.request
     >>> from unidiff import PatchSet
@@ -86,7 +86,7 @@ Load a local diff file
 
 To instantiate :code:`PatchSet` from a local file, you can use:
 
-::
+.. code-block:: python
 
     >>> from unidiff import PatchSet
     >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8')
@@ -95,7 +95,7 @@ To instantiate :code:`PatchSet` from a local file, you can use:
 
 Notice the (optional) :code:`encoding` parameter. If not specified, unicode input will be expected. Or alternatively:
 
-::
+.. code-block:: python
 
     >>> import codecs
     >>> from unidiff import PatchSet
@@ -107,7 +107,7 @@ Notice the (optional) :code:`encoding` parameter. If not specified, unicode inpu
 
 Finally, you can also instantiate :code:`PatchSet` passing any iterable (and encoding, if needed):
 
-::
+.. code-block:: python
 
     >>> from unidiff import PatchSet
     >>> with open('tests/samples/bzr.diff', 'r') as diff:
@@ -121,7 +121,7 @@ If you don't need to be able to rebuild the original unified diff input, you can
 :code:`metadata_only=True` (defaults to :code:`False`), which should help making the
 parsing more efficient:
 
-::
+.. code-block:: python
 
     >>> from unidiff import PatchSet
     >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8', metadata_only=True)
@@ -130,5 +130,5 @@ parsing more efficient:
 References
 ----------
 
-* http://en.wikipedia.org/wiki/Diff_utility
-* http://www.artima.com/weblogs/viewpost.jsp?thread=164293
+* https://en.wikipedia.org/wiki/Diff_utility
+* https://www.artima.com/weblogs/viewpost.jsp?thread=164293
