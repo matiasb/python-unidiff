@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        python-version: [ '2.7', '3.6', '3.7', '3.8', '3.9' ]
+      fail-fast: false  
+      
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64' 
+      - name: 'Run Tests'
+        run: $GITHUB_WORKSPACE/run_tests.sh
+        shell: bash
+
