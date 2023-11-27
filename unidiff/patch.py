@@ -602,7 +602,7 @@ class PatchSet(list):
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None, newline=None):
-        # type: (str, str, Optional[str]) -> PatchSet
+        # type: (str, str, Optional[str], Optional[str]) -> PatchSet
         """Return a PatchSet instance given a diff filename."""
         with open_file(filename, 'r', encoding=encoding, errors=errors, newline=newline) as f:
             instance = cls(f)
