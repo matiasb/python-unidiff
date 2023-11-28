@@ -238,7 +238,7 @@ class PatchedFile(list):
     def __init__(self, patch_info=None, source='', target='',
                  source_timestamp=None, target_timestamp=None,
                  is_binary_file=False):
-        # type: (Optional[PatchInfo], str, str, Optional[str], Optional[str], bool, bool) -> None
+        # type: (Optional[PatchInfo], str, str, Optional[str], Optional[str], bool) -> None
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
@@ -602,7 +602,7 @@ class PatchSet(list):
 
     @classmethod
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None, newline=None):
-        # type: (str, str, Optional[str]) -> PatchSet
+        # type: (str, str, Optional[str], Optional[str]) -> PatchSet
         """Return a PatchSet instance given a diff filename."""
         with open_file(filename, 'r', encoding=encoding, errors=errors, newline=newline) as f:
             instance = cls(f)
