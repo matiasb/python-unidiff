@@ -238,7 +238,7 @@ class PatchedFile(list):
     def __init__(self, patch_info=None, source='', target='',
                  source_timestamp=None, target_timestamp=None,
                  is_binary_file=False):
-        # type: (Optional[PatchInfo], str, str, Optional[str], Optional[str], bool, bool) -> None
+        # type: (Optional[PatchInfo], str, str, Optional[str], Optional[str], bool) -> None
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
