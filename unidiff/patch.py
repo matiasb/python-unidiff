@@ -50,6 +50,7 @@ from unidiff.constants import (
     RE_TARGET_FILENAME,
     RE_NO_NEWLINE_MARKER,
     RE_BINARY_DIFF,
+    RE_PATCH_FILE_PREFIX,
 )
 from unidiff.errors import UnidiffParseError
 
@@ -397,7 +398,7 @@ class PatchedFile(list):
         if quoted:
             filepath = filepath[1:-1]
 
-        if filepath.startswith('a/') or filepath.startswith('b/'):
+        if RE_PATCH_FILE_PREFIX.match(filepath):
             filepath = filepath[2:]
 
         if quoted:

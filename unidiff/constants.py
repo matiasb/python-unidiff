@@ -71,6 +71,8 @@ RE_BINARY_DIFF = re.compile(
     r'(?P<source_filename>[^\t]+?)(?:\t(?P<source_timestamp>[\s0-9:\+-]+))?'
     r'(?: and (?P<target_filename>[^\t]+?)(?:\t(?P<target_timestamp>[\s0-9:\+-]+))?)? (differ|has changed)')
 
+RE_PATCH_FILE_PREFIX = re.compile(r"^[abciow12]/.*$")
+
 DEFAULT_ENCODING = 'UTF-8'
 
 DEV_NULL = '/dev/null'

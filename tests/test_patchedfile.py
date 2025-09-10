@@ -52,3 +52,15 @@ class TestPatchedFile(unittest.TestCase):
         hunk = Hunk(src_start=1, src_len=10, tgt_start=1, tgt_len=8)
         self.patched_file.append(hunk)
         self.assertTrue(self.patched_file.is_modified_file)
+
+    def test_default_file_prefix(self):
+        default_prefix = PatchedFile(source="a/foo/", target="b/foo/")
+        self.assertTrue(default_prefix.path == "foo/")
+
+    def test_git_mnemonic_file_prefix(self):
+        default_prefix = PatchedFile(source="i/foo/", target="c/foo/")
+        self.assertTrue(default_prefix.path == "foo/")
+
+    def test_no_file_prefix(self):
+        default_prefix = PatchedFile(source="/foo/", target="/foo/")
+        self.assertTrue(default_prefix.path == "/foo/")
