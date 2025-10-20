@@ -257,30 +257,35 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertFalse(res[0].is_removed_file)
         self.assertTrue(res[0].is_added_file)
         self.assertFalse(res[0].is_binary_file)
+        self.assertEqual(res[0].diff_line_no, 1)
 
         # second file is added
         self.assertFalse(res[1].is_modified_file)
         self.assertFalse(res[1].is_removed_file)
         self.assertTrue(res[1].is_added_file)
         self.assertTrue(res[1].is_binary_file)
+        self.assertEqual(res[1].diff_line_no, 4)
 
         # third file is modified
         self.assertTrue(res[2].is_modified_file)
         self.assertFalse(res[2].is_removed_file)
         self.assertFalse(res[2].is_added_file)
         self.assertTrue(res[2].is_binary_file)
+        self.assertEqual(res[2].diff_line_no, 8)
 
         # fourth file is removed
         self.assertFalse(res[3].is_modified_file)
         self.assertTrue(res[3].is_removed_file)
         self.assertFalse(res[3].is_added_file)
         self.assertTrue(res[3].is_binary_file)
+        self.assertEqual(res[3].diff_line_no, 11)
 
         # fifth empty file is added
         self.assertFalse(res[4].is_modified_file)
         self.assertFalse(res[4].is_removed_file)
         self.assertTrue(res[4].is_added_file)
         self.assertFalse(res[4].is_binary_file)
+        self.assertEqual(res[4].diff_line_no, 15)
 
     def test_parse_diff_with_new_and_modified_binary_files_linenos(self):
         """Parse debdiff output for a source debdiff with binary files."""
@@ -296,11 +301,13 @@ class TestUnidiffParser(unittest.TestCase):
 
         # first file, first patch, first hunk diff_line_no is 5
         self.assertEqual(res[0][0][0].diff_line_no, 5)
+        self.assertEqual(res[0].diff_line_no, 3)
 
         # second file is /t/p2/a.png
         self.assertEqual(res[1].path, '/t/p2/a.png')
 
         # How to know the second file line number?
+        self.assertEqual(res[1].diff_line_no, 6)
 
     def test_parse_round_trip_with_binary_files_in_diff(self):
         """Parse git diff with binary files though round trip"""
