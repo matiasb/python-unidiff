@@ -282,6 +282,26 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[4].is_added_file)
         self.assertFalse(res[4].is_binary_file)
 
+    def test_parse_diff_with_new_and_modified_binary_files_linenos(self):
+        """Parse debdiff output for a source debdiff with binary files."""
+        utf8_file = os.path.join(self.samples_dir, 'samples/debdiff.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res = PatchSet(diff_file)
+
+        # three file in the patch
+        self.assertEqual(len(res), 3)
+
+        # first file is new/added.txt
+        self.assertEqual(res[0].path, 'new/added.txt')
+
+        # first file, first patch, first hunk diff_line_no is 5
+        self.assertEqual(res[0][0][0].diff_line_no, 5)
+
+        # second file is /t/p2/a.png
+        self.assertEqual(res[1].path, '/t/p2/a.png')
+
+        # How to know the second file line number?
+
     def test_parse_round_trip_with_binary_files_in_diff(self):
         """Parse git diff with binary files though round trip"""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
