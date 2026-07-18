@@ -127,6 +127,28 @@ parsing more efficient:
     >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8', metadata_only=True)
 
 
+Diffs with embedded carriage returns or control characters
+----------------------------------------------------------
+
+Diff hunk content may include arbitrary bytes, such as a lone carriage return
+(:code:`\\r`) or other control characters (for example the output of some
+editors or generated patches). By default Python opens text files in universal
+newlines mode, which translates a lone :code:`\\r` into a line break and would
+split such content across lines, breaking parsing.
+
+To parse these diffs, read the data without universal-newline translation by
+passing :code:`newline='\\n'` (so lines are split only on :code:`\\n`):
+
+.. code-block:: python
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet.from_filename('tests/samples/git_cr.diff', newline='\n')
+
+Equivalently, open the file yourself with :code:`newline='\\n'` (or in binary
+mode passing the :code:`encoding` argument) before handing it to
+:code:`PatchSet`.
+
+
 References
 ----------
 
