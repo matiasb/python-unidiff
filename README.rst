@@ -62,6 +62,11 @@ you can get stats (if it is a new, removed or modified file; the source/target
 lines; etc), besides having access to each hunk (also like a list) and its
 respective info.
 
+For git diffs, the file mode is exposed through the :code:`source_mode` and
+:code:`target_mode` attributes (e.g. :code:`'100644'`, :code:`'100755'`,
+:code:`'120000'`), or :code:`None` when unknown. The :code:`is_symlink`
+property is a shortcut to detect symbolic links (mode :code:`120000`).
+
 At any point you can get the string representation of the current object, and
 that will return the unified diff data of it.
 

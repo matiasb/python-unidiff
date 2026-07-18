@@ -42,7 +42,10 @@ from unidiff.constants import (
     RE_DIFF_GIT_HEADER,
     RE_DIFF_GIT_HEADER_URI_LIKE,
     RE_DIFF_GIT_HEADER_NO_PREFIX,
+    RE_DIFF_GIT_INDEX,
     RE_DIFF_GIT_NEW_FILE,
+    RE_DIFF_GIT_NEW_MODE,
+    RE_DIFF_GIT_OLD_MODE,
     RE_HUNK_BODY_LINE,
     RE_HUNK_EMPTY_BODY_LINE,
     RE_HUNK_HEADER,
@@ -50,6 +53,7 @@ from unidiff.constants import (
     RE_TARGET_FILENAME,
     RE_NO_NEWLINE_MARKER,
     RE_BINARY_DIFF,
+    SYMLINK_FILE_MODE,
 )
 from unidiff.errors import UnidiffParseError
 
@@ -202,7 +206,9 @@ class PatchedFile(list[Hunk]):
                  source: str = '', target: str = '',
                  source_timestamp: Optional[str] = None,
                  target_timestamp: Optional[str] = None,
-                 is_binary_file: bool = False) -> None:
+                 is_binary_file: bool = False,
+                 source_mode: Optional[str] = None,
+                 target_mode: Optional[str] = None) -> None:
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
@@ -210,6 +216,9 @@ class PatchedFile(list[Hunk]):
         self.target_file = target
         self.target_timestamp = target_timestamp
         self.is_binary_file = is_binary_file
+        # git file modes (e.g. '100644', '100755', '120000'); None if unknown
+        self.source_mode = source_mode
+        self.target_mode = target_mode
 
     def __repr__(self) -> str:
         return "<PatchedFile: %s>" % self.path
@@ -402,6 +411,14 @@ class PatchedFile(list[Hunk]):
         """Return True if this patch modifies the file."""
         return not (self.is_added_file or self.is_removed_file)
 
+    @property
+    def is_symlink(self) -> bool:
+        """Return True if the patched file is a symbolic link."""
+        # prefer the target mode; fall back to the source mode (e.g. a
+        # removed symlink only carries the old mode)
+        mode = self.target_mode if self.target_mode is not None else self.source_mode
+        return mode == SYMLINK_FILE_MODE
+
 
 class PatchSet(list[PatchedFile]):
     """A list of PatchedFiles."""
@@ -459,6 +476,7 @@ class PatchSet(list[PatchedFile]):
                 if current_file is None or patch_info is None:
                     raise UnidiffParseError('Unexpected new file found: %s' % line)
                 current_file.source_file = DEV_NULL
+                current_file.target_mode = is_diff_git_new_file.group('mode')
                 patch_info.append(line)
                 continue
 
@@ -468,8 +486,35 @@ class PatchSet(list[PatchedFile]):
                 if current_file is None or patch_info is None:
                     raise UnidiffParseError('Unexpected deleted file found: %s' % line)
                 current_file.target_file = DEV_NULL
+                current_file.source_mode = is_diff_git_deleted_file.group('mode')
                 patch_info.append(line)
                 continue
+
+            # check for git file mode change / index lines (extract the mode
+            # but keep the line as patch info so the diff still round-trips)
+            if current_file is not None and patch_info is not None:
+                is_diff_git_old_mode = RE_DIFF_GIT_OLD_MODE.match(line)
+                if is_diff_git_old_mode:
+                    current_file.source_mode = is_diff_git_old_mode.group('mode')
+                    patch_info.append(line)
+                    continue
+
+                is_diff_git_new_mode = RE_DIFF_GIT_NEW_MODE.match(line)
+                if is_diff_git_new_mode:
+                    current_file.target_mode = is_diff_git_new_mode.group('mode')
+                    patch_info.append(line)
+                    continue
+
+                is_diff_git_index = RE_DIFF_GIT_INDEX.match(line)
+                if is_diff_git_index:
+                    # an unchanged index mode applies to both source and target
+                    mode = is_diff_git_index.group('mode')
+                    if current_file.source_mode is None:
+                        current_file.source_mode = mode
+                    if current_file.target_mode is None:
+                        current_file.target_mode = mode
+                    patch_info.append(line)
+                    continue
 
             # check for source file header
             is_source_filename = RE_SOURCE_FILENAME.match(line)

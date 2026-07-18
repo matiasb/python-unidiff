@@ -1,0 +1,8 @@
+diff --git a/bin/check b/bin/check
+new file mode 120000
+index 000000000..f35a09670
+--- /dev/null
++++ b/bin/check
+@@ -0,0 +1 @@
++.pyenv-wrapper
+\ No newline at end of file
