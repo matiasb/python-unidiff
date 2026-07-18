@@ -235,6 +235,41 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(ps1, ps2)
 
+    def test_parse_content_with_control_characters(self):
+        # regression test for issue #120: hunk content may contain arbitrary
+        # control bytes (e.g. ESC, and lone CR) as in the reported vim diff.
+        # A lone CR must not be treated as a line separator; reading the data
+        # without universal-newline translation preserves and round-trips it.
+        content = (
+            '--- a/f\n'
+            '+++ b/f\n'
+            '@@ -1,1 +1,3 @@\n'
+            ' context\n'
+            '+sil! norm R\x1bdoo\x1bbdeu\x17\x18R\rcont\n'
+            '+tail line\n'
+        )
+
+        # string input goes through StringIO, which only splits on \n
+        res = PatchSet(content)
+        self.assertEqual(res.added, 2)
+        self.assertEqual(len(res[0][0]), 3)
+        self.assertEqual(
+            str(res[0][0][1]), '+sil! norm R\x1bdoo\x1bbdeu\x17\x18R\rcont\n')
+        self.assertEqual(str(res), content)
+
+        # reading from a file requires newline='\n' to avoid the lone CR being
+        # interpreted as a line boundary (the from_filename default would raise)
+        path = os.path.join(self.samples_dir, 'samples', '_control_chars.diff')
+        try:
+            with open(path, 'wb') as f:
+                f.write(content.encode('utf-8'))
+            self.assertRaises(UnidiffParseError, PatchSet.from_filename, path)
+            res2 = PatchSet.from_filename(path, newline='\n')
+            self.assertEqual(res, res2)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
     def test_parse_diff_with_new_and_modified_binary_files(self):
         """Parse git diff file with newly added and modified binaries files."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
