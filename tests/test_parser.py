@@ -206,6 +206,23 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(ps1, ps2)
 
+    def test_patchset_bytes_input(self):
+        # issue #43: accept bytes directly so callers need not pre-decode;
+        # with no encoding given, bytes default to UTF-8
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
+        with open(utf8_file, 'rb') as diff_file:
+            diff_bytes = diff_file.read()
+
+        ps_default = PatchSet(diff_bytes)
+        ps_explicit = PatchSet(diff_bytes, encoding='utf-8')
+        with open(utf8_file, 'rb') as diff_file:
+            ps_ref = PatchSet(diff_file, encoding='utf-8')
+
+        self.assertEqual(ps_default, ps_ref)
+        self.assertEqual(ps_explicit, ps_ref)
+        # from_string also accepts bytes without an explicit encoding
+        self.assertEqual(PatchSet.from_string(diff_bytes), ps_ref)
+
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
         with open(self.sample_bad_file) as diff_file:
