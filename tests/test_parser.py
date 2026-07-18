@@ -341,6 +341,25 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[0].is_added_file)
         self.assertEqual(res[0].path, '"A \\303\\242 B.py"')
 
+    def test_parse_quoted_filename_with_spaces(self):
+        # regression test for issue #119: a quoted filename containing
+        # spaces must not be mis-split into wrong source/target and must
+        # not be detected as a rename when source and target match.
+        filename = os.path.join(
+            self.samples_dir, 'samples/git_quoted_filename_with_spaces.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+        self.assertEqual(
+            res[0].source_file, '"a/docs/develop/Bug \\346\\216\\222\\346\\237\\245.md"')
+        self.assertEqual(
+            res[0].target_file, '"b/docs/develop/Bug \\346\\216\\222\\346\\237\\245.md"')
+        self.assertFalse(res[0].is_rename)
+        self.assertTrue(res[0].is_modified_file)
+        self.assertEqual(
+            res[0].path, '"docs/develop/Bug \\346\\216\\222\\346\\237\\245.md"')
+
 
     def test_deleted_file(self):
         filename = os.path.join(self.samples_dir, 'samples/git_delete.diff')
