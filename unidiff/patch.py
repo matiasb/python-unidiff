@@ -233,6 +233,7 @@ class PatchedFile(list[Hunk]):
                     metadata_only: bool) -> None:
         """Parse hunk details."""
         header_info = RE_HUNK_HEADER.match(header)
+        assert header_info is not None  # caller guarantees a hunk header
         hunk_info = header_info.groups()
         hunk = Hunk(*hunk_info)
 
@@ -428,13 +429,13 @@ class PatchSet(list[PatchedFile]):
     def __str__(self) -> str:
         return ''.join(str(patched_file) for patched_file in self)
 
-    def _parse(self, diff: Iterable[str], encoding: Optional[str],
+    def _parse(self, diff: Iterable, encoding: Optional[str],
                metadata_only: bool) -> None:
         current_file = None
         patch_info = None
 
-        diff = enumerate(diff, 1)
-        for unused_diff_line_no, line in diff:
+        diff_lines = enumerate(diff, 1)
+        for unused_diff_line_no, line in diff_lines:
             if encoding is not None:
                 line = line.decode(encoding)
 
@@ -508,7 +509,7 @@ class PatchSet(list[PatchedFile]):
                 patch_info = None
                 if current_file is None:
                     raise UnidiffParseError('Unexpected hunk found: %s' % line)
-                current_file._parse_hunk(line, diff, encoding, metadata_only)
+                current_file._parse_hunk(line, diff_lines, encoding, metadata_only)
                 continue
 
             # check for no newline marker
@@ -545,6 +546,8 @@ class PatchSet(list[PatchedFile]):
                 continue
 
             if line == 'GIT binary patch\n':
+                if current_file is None:
+                    raise UnidiffParseError('Unexpected binary patch marker: %s' % line)
                 current_file.is_binary_file = True
                 patch_info = None
                 current_file = None
@@ -566,8 +569,8 @@ class PatchSet(list[PatchedFile]):
                         errors: str = 'strict') -> StringIO:
         if encoding is not None:
             # if encoding is given, assume bytes and decode
-            data = str(data, encoding=encoding, errors=errors)
-        return StringIO(data)
+            data = str(data, encoding=encoding, errors=errors)  # type: ignore[arg-type]
+        return StringIO(data)  # type: ignore[arg-type]
 
     @classmethod
     def from_string(cls, data: Union[str, bytes], encoding: Optional[str] = None,

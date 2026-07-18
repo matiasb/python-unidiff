@@ -4,6 +4,8 @@ __pycache__
 build
 dist
 unidiff.egg-info
+.venv
+.mypy_cache
 
 # Vim
 *.swp
