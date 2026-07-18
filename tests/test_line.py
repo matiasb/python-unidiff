@@ -24,8 +24,6 @@
 
 """Tests for Line."""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from unidiff.patch import (

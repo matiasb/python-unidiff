@@ -24,18 +24,13 @@
 
 """Tests for the unified diff parser process."""
 
-from __future__ import unicode_literals
-
 import codecs
 import os.path
 import unittest
 
 from unidiff import PatchSet
-from unidiff.patch import PY2
 from unidiff.errors import UnidiffParseError
 
-if not PY2:
-    unicode = str
 
 class TestUnidiffParser(unittest.TestCase):
     """Tests for Unified Diff Parser."""
@@ -52,11 +47,8 @@ class TestUnidiffParser(unittest.TestCase):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
         # read bytes
         with open(utf8_file, 'rb') as diff_file:
-            if PY2:
-                self.assertRaises(UnicodeDecodeError, PatchSet, diff_file)
-            else:
-                # unicode expected
-                self.assertRaises(TypeError, PatchSet, diff_file)
+            # unicode expected
+            self.assertRaises(TypeError, PatchSet, diff_file)
 
     def test_encoding_param(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
@@ -110,7 +102,7 @@ class TestUnidiffParser(unittest.TestCase):
     def test_print_hunks_without_gaps(self):
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
             res = PatchSet(diff_file)
-        lines = unicode(res).splitlines()
+        lines = str(res).splitlines()
         self.assertEqual(lines[12], '@@ -5,16 +11,10 @@')
         self.assertEqual(lines[31], '@@ -22,3 +22,7 @@')
 

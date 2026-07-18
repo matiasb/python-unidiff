@@ -24,8 +24,6 @@
 
 """Unidiff parsing library."""
 
-from __future__ import unicode_literals
-
 from unidiff import __version__
 from unidiff.patch import (
     DEFAULT_ENCODING,
