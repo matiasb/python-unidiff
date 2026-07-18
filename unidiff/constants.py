@@ -24,8 +24,6 @@
 
 """Useful constants and regexes used by the package."""
 
-from __future__ import unicode_literals
-
 import re
 
 

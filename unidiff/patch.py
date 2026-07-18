@@ -24,10 +24,8 @@
 
 """Classes used by the unified diff parser to keep the diff data."""
 
-from __future__ import unicode_literals
-
-import codecs
-import sys
+from io import StringIO
+from typing import Iterable, Optional, Union
 
 from unidiff.constants import (
     DEFAULT_ENCODING,
@@ -54,28 +52,6 @@ from unidiff.constants import (
 from unidiff.errors import UnidiffParseError
 
 
-PY2 = sys.version_info[0] == 2
-if PY2:
-    import io
-    from StringIO import StringIO
-    open_file = io.open
-    make_str = lambda x: x.encode(DEFAULT_ENCODING)
-
-    def implements_to_string(cls):
-        cls.__unicode__ = cls.__str__
-        cls.__str__ = lambda x: x.__unicode__().encode(DEFAULT_ENCODING)
-        return cls
-else:
-    from io import StringIO
-    from typing import Iterable, Optional, Union
-    open_file = open
-    make_str = str
-    implements_to_string = lambda x: x
-    unicode = str
-    basestring = str
-
-
-@implements_to_string
 class Line(object):
     """A diff line."""
 
@@ -91,7 +67,7 @@ class Line(object):
 
     def __repr__(self):
         # type: () -> str
-        return make_str("<Line: %s%s>") % (self.line_type, self.value)
+        return "<Line: %s%s>" % (self.line_type, self.value)
 
     def __str__(self):
         # type: () -> str
@@ -121,7 +97,6 @@ class Line(object):
         return self.line_type == LINE_TYPE_CONTEXT
 
 
-@implements_to_string
 class PatchInfo(list):
     """Lines with extended patch info.
 
@@ -133,14 +108,13 @@ class PatchInfo(list):
     def __repr__(self):
         # type: () -> str
         value = "<PatchInfo: %s>" % self[0].strip()
-        return make_str(value)
+        return value
 
     def __str__(self):
         # type: () -> str
-        return ''.join(unicode(line) for line in self)
+        return ''.join(str(line) for line in self)
 
 
-@implements_to_string
 class Hunk(list):
     """Each of the modified blocks of a file."""
 
@@ -167,7 +141,7 @@ class Hunk(list):
                                                   self.target_start,
                                                   self.target_length,
                                                   self.section_header)
-        return make_str(value)
+        return value
 
     def __str__(self):
         # type: () -> str
@@ -176,7 +150,7 @@ class Hunk(list):
             self.source_start, self.source_length,
             self.target_start, self.target_length,
             ' ' + self.section_header if self.section_header else '')
-        content = ''.join(unicode(line) for line in self)
+        content = ''.join(str(line) for line in self)
         return head + content
 
     def append(self, line):
@@ -249,7 +223,7 @@ class PatchedFile(list):
 
     def __repr__(self):
         # type: () -> str
-        return make_str("<PatchedFile: %s>") % make_str(self.path)
+        return "<PatchedFile: %s>" % self.path
 
     def __str__(self):
         # type: () -> str
@@ -264,7 +238,7 @@ class PatchedFile(list):
             target = "+++ %s%s\n" % (
                 self.target_file,
                 '\t' + self.target_timestamp if self.target_timestamp else '')
-        hunks = ''.join(unicode(hunk) for hunk in self)
+        hunks = ''.join(str(hunk) for hunk in self)
         return info + source + target + hunks
 
     def _parse_hunk(self, header, diff, encoding, metadata_only):
@@ -448,7 +422,6 @@ class PatchedFile(list):
         return not (self.is_added_file or self.is_removed_file)
 
 
-@implements_to_string
 class PatchSet(list):
     """A list of PatchedFiles."""
 
@@ -457,7 +430,7 @@ class PatchSet(list):
         super(PatchSet, self).__init__()
 
         # convert string inputs to StringIO objects
-        if isinstance(f, basestring):
+        if isinstance(f, str):
             f = self._convert_string(f, encoding)  # type: StringIO
 
         # make sure we pass an iterator object to parse
@@ -470,11 +443,11 @@ class PatchSet(list):
 
     def __repr__(self):
         # type: () -> str
-        return make_str('<PatchSet: %s>') % super(PatchSet, self).__repr__()
+        return '<PatchSet: %s>' % super(PatchSet, self).__repr__()
 
     def __str__(self):
         # type: () -> str
-        return ''.join(unicode(patched_file) for patched_file in self)
+        return ''.join(str(patched_file) for patched_file in self)
 
     def _parse(self, diff, encoding, metadata_only):
         # type: (StringIO, Optional[str], bool) -> None
@@ -604,7 +577,7 @@ class PatchSet(list):
     def from_filename(cls, filename, encoding=DEFAULT_ENCODING, errors=None, newline=None):
         # type: (str, str, Optional[str]) -> PatchSet
         """Return a PatchSet instance given a diff filename."""
-        with open_file(filename, 'r', encoding=encoding, errors=errors, newline=newline) as f:
+        with open(filename, 'r', encoding=encoding, errors=errors, newline=newline) as f:
             instance = cls(f)
         return instance
 
@@ -613,7 +586,7 @@ class PatchSet(list):
         # type: (Union[str, bytes], str, str) -> StringIO
         if encoding is not None:
             # if encoding is given, assume bytes and decode
-            data = unicode(data, encoding=encoding, errors=errors)
+            data = str(data, encoding=encoding, errors=errors)
         return StringIO(data)
 
     @classmethod
