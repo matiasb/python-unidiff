@@ -1,0 +1,7 @@
+diff -u -N original/added.txt new/added.txt
+--- original/added.txt	1970-01-01 01:00:00.000000000 +0100
++++ new/added.txt	2025-03-26 12:42:27.672906377 +0000
+@@ -0,0 +1 @@
++new file
+Binary files Binary files /t/p1/a.png and /t/p2/a.png differ
+Binary files Binary files /t/p1/b.png and /t/p2/b.png differ

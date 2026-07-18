@@ -209,7 +209,8 @@ class PatchedFile(list[Hunk]):
                  target_timestamp: Optional[str] = None,
                  is_binary_file: bool = False,
                  source_mode: Optional[str] = None,
-                 target_mode: Optional[str] = None) -> None:
+                 target_mode: Optional[str] = None,
+                 diff_line_no: Optional[int] = None) -> None:
         super(PatchedFile, self).__init__()
         self.patch_info = patch_info
         self.source_file = source
@@ -220,6 +221,9 @@ class PatchedFile(list[Hunk]):
         # git file modes (e.g. '100644', '100755', '120000'); None if unknown
         self.source_mode = source_mode
         self.target_mode = target_mode
+        # 1-based line number in the diff where this file entry starts; useful
+        # to locate files that have no hunks (e.g. binary changes)
+        self.diff_line_no = diff_line_no
 
     def __repr__(self) -> str:
         return "<PatchedFile: %s>" % self.path
@@ -453,7 +457,7 @@ class PatchSet(list[PatchedFile]):
         patch_info = None
 
         diff_lines = enumerate(diff, 1)
-        for unused_diff_line_no, line in diff_lines:
+        for diff_line_no, line in diff_lines:
             if encoding is not None:
                 line = line.decode(encoding)
 
@@ -466,7 +470,8 @@ class PatchSet(list[PatchedFile]):
                 source_file = is_diff_git_header.group('source')
                 target_file = is_diff_git_header.group('target')
                 current_file = PatchedFile(
-                    patch_info, source_file, target_file, None, None)
+                    patch_info, source_file, target_file, None, None,
+                    diff_line_no=diff_line_no)
                 self.append(current_file)
                 patch_info.append(line)
                 continue
@@ -542,7 +547,8 @@ class PatchSet(list[PatchedFile]):
                     # add current file to PatchSet
                     current_file = PatchedFile(
                         patch_info, source_file, target_file,
-                        source_timestamp, target_timestamp)
+                        source_timestamp, target_timestamp,
+                        diff_line_no=diff_line_no)
                     self.append(current_file)
                     patch_info = None
                 else:
@@ -585,7 +591,8 @@ class PatchSet(list[PatchedFile]):
                     current_file.is_binary_file = True
                 else:
                     current_file = PatchedFile(
-                        patch_info, source_file, target_file, is_binary_file=True)
+                        patch_info, source_file, target_file, is_binary_file=True,
+                        diff_line_no=diff_line_no)
                     self.append(current_file)
                 patch_info = None
                 current_file = None

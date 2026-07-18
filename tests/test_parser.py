@@ -284,30 +284,58 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertFalse(res[0].is_removed_file)
         self.assertTrue(res[0].is_added_file)
         self.assertFalse(res[0].is_binary_file)
+        self.assertEqual(res[0].diff_line_no, 1)
 
         # second file is added
         self.assertFalse(res[1].is_modified_file)
         self.assertFalse(res[1].is_removed_file)
         self.assertTrue(res[1].is_added_file)
         self.assertTrue(res[1].is_binary_file)
+        self.assertEqual(res[1].diff_line_no, 4)
 
         # third file is modified
         self.assertTrue(res[2].is_modified_file)
         self.assertFalse(res[2].is_removed_file)
         self.assertFalse(res[2].is_added_file)
         self.assertTrue(res[2].is_binary_file)
+        self.assertEqual(res[2].diff_line_no, 8)
 
         # fourth file is removed
         self.assertFalse(res[3].is_modified_file)
         self.assertTrue(res[3].is_removed_file)
         self.assertFalse(res[3].is_added_file)
         self.assertTrue(res[3].is_binary_file)
+        self.assertEqual(res[3].diff_line_no, 11)
 
         # fifth empty file is added
         self.assertFalse(res[4].is_modified_file)
         self.assertFalse(res[4].is_removed_file)
         self.assertTrue(res[4].is_added_file)
         self.assertFalse(res[4].is_binary_file)
+        self.assertEqual(res[4].diff_line_no, 15)
+
+    def test_parse_debdiff_binary_file_line_numbers(self):
+        # issue #122 / PR #123: a binary change without hunks should still
+        # expose the diff line number where its entry appears.
+        utf8_file = os.path.join(self.samples_dir, 'samples/debdiff.diff')
+        with open(utf8_file, 'r') as diff_file:
+            res = PatchSet(diff_file)
+
+        self.assertEqual(len(res), 3)
+
+        # first file has a hunk; entry starts at the +++ line (3)
+        self.assertEqual(res[0].path, 'new/added.txt')
+        self.assertEqual(res[0].diff_line_no, 3)
+        self.assertEqual(res[0][0][0].diff_line_no, 5)
+
+        # the binary entries carry the line number of their "Binary files" line
+        self.assertEqual(res[1].path, '/t/p2/a.png')
+        self.assertTrue(res[1].is_binary_file)
+        self.assertEqual(res[1].diff_line_no, 6)
+
+        self.assertEqual(res[2].path, '/t/p2/b.png')
+        self.assertTrue(res[2].is_binary_file)
+        self.assertEqual(res[2].diff_line_no, 7)
 
     def test_parse_round_trip_with_binary_files_in_diff(self):
         """Parse git diff with binary files though round trip"""
