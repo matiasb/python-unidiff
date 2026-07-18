@@ -382,6 +382,38 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(
             res[0].path, '"docs/develop/Bug \\346\\216\\222\\346\\237\\245.md"')
 
+    def test_line_numbers_with_section_header(self):
+        # regression test for issue / PR #118: a hunk carrying a non-empty
+        # section header must not throw off source/target line numbering.
+        diff = (
+            '--- a/f.py\n'
+            '+++ b/f.py\n'
+            '@@ -10,7 +10,7 @@ def my_function(arg):\n'
+            ' ctx1\n'
+            ' ctx2\n'
+            ' ctx3\n'
+            '-old line\n'
+            '+new line\n'
+            ' ctx4\n'
+            ' ctx5\n'
+            ' ctx6\n'
+        )
+        res = PatchSet(diff)
+        hunk = res[0][0]
+
+        self.assertEqual(hunk.section_header, 'def my_function(arg):')
+        self.assertTrue(hunk.is_valid())
+        self.assertEqual(hunk.added, 1)
+        self.assertEqual(hunk.removed, 1)
+        # the removed line is source line 13; the added line is target line 13
+        removed = [l for l in hunk if l.is_removed][0]
+        added = [l for l in hunk if l.is_added][0]
+        self.assertEqual(removed.source_line_no, 13)
+        self.assertEqual(added.target_line_no, 13)
+        # trailing context keeps counting correctly
+        self.assertEqual(hunk[-1].source_line_no, 16)
+        self.assertEqual(hunk[-1].target_line_no, 16)
+
 
     def test_deleted_file(self):
         filename = os.path.join(self.samples_dir, 'samples/git_delete.diff')
