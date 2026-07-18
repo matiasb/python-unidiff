@@ -98,7 +98,7 @@ To instantiate :code:`PatchSet` from a local file, you can use:
     >>> patch
     <PatchSet: [<PatchedFile: added_file>, <PatchedFile: modified_file>, <PatchedFile: removed_file>]>
 
-Notice the (optional) :code:`encoding` parameter. If not specified, unicode input will be expected. Or alternatively:
+Notice the (optional) :code:`encoding` parameter. If not specified, unicode input will be expected (or, when the data is :code:`bytes`, it is decoded using :code:`encoding`, defaulting to UTF-8). Or alternatively:
 
 .. code-block:: python
 

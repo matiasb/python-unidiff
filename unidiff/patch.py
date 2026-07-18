@@ -428,14 +428,17 @@ class PatchedFile(list[Hunk]):
 class PatchSet(list[PatchedFile]):
     """A list of PatchedFiles."""
 
-    def __init__(self, f: Union[StringIO, str, Iterable[str]],
+    def __init__(self, f: Union[StringIO, str, bytes, Iterable[str]],
                  encoding: Optional[str] = None,
                  metadata_only: bool = False) -> None:
         super(PatchSet, self).__init__()
 
-        # convert string inputs to StringIO objects
-        if isinstance(f, str):
+        # convert str/bytes inputs to StringIO objects (bytes are decoded,
+        # defaulting to UTF-8 when no encoding is given)
+        if isinstance(f, (str, bytes)):
             f = self._convert_string(f, encoding)
+            # the data has already been decoded into text
+            encoding = None
 
         # make sure we pass an iterator object to parse
         data = iter(f)
@@ -620,10 +623,10 @@ class PatchSet(list[PatchedFile]):
     @staticmethod
     def _convert_string(data: Union[str, bytes], encoding: Optional[str] = None,
                         errors: str = 'strict') -> StringIO:
-        if encoding is not None:
-            # if encoding is given, assume bytes and decode
-            data = str(data, encoding=encoding, errors=errors)  # type: ignore[arg-type]
-        return StringIO(data)  # type: ignore[arg-type]
+        if isinstance(data, bytes):
+            # decode bytes input, defaulting to UTF-8 when no encoding is given
+            data = data.decode(encoding or DEFAULT_ENCODING, errors)
+        return StringIO(data)
 
     @classmethod
     def from_string(cls, data: Union[str, bytes], encoding: Optional[str] = None,
