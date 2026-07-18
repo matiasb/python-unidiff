@@ -27,10 +27,12 @@
 import re
 
 
+# the filename may be empty (e.g. difflib.unified_diff output without
+# fromfile/tofile emits bare "--- " and "+++ " headers)
 RE_SOURCE_FILENAME = re.compile(
-    r'^--- (?P<filename>"?[^\t\n]+"?)(?:\t(?P<timestamp>[^\n]+))?')
+    r'^--- (?P<filename>"?[^\t\n]*"?)(?:\t(?P<timestamp>[^\n]+))?')
 RE_TARGET_FILENAME = re.compile(
-    r'^\+\+\+ (?P<filename>"?[^\t\n]+"?)(?:\t(?P<timestamp>[^\n]+))?')
+    r'^\+\+\+ (?P<filename>"?[^\t\n]*"?)(?:\t(?P<timestamp>[^\n]+))?')
 
 
 # check diff git line for git renamed files support
