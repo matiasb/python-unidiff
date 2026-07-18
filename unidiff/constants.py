@@ -79,6 +79,11 @@ RE_BINARY_DIFF = re.compile(
     r'(?P<source_filename>[^\t]+?)(?:\t(?P<source_timestamp>[\s0-9:\+-]+))?'
     r'(?: and (?P<target_filename>[^\t]+?)(?:\t(?P<target_timestamp>[\s0-9:\+-]+))?)? (differ|has changed)')
 
+# git source/target filename prefixes: the standard "a/" and "b/", plus the
+# mnemonic prefixes used when diff.mnemonicPrefix is set (c/ i/ o/ w/) and the
+# 1/ 2/ pair used by `git diff --no-index`
+RE_PATCH_FILE_PREFIX = re.compile(r'^[abciow12]/')
+
 DEFAULT_ENCODING = 'UTF-8'
 
 DEV_NULL = '/dev/null'

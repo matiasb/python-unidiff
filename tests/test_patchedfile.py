@@ -50,3 +50,20 @@ class TestPatchedFile(unittest.TestCase):
         hunk = Hunk(src_start=1, src_len=10, tgt_start=1, tgt_len=8)
         self.patched_file.append(hunk)
         self.assertTrue(self.patched_file.is_modified_file)
+
+    def test_default_file_prefix(self):
+        patched_file = PatchedFile(source="a/foo/bar", target="b/foo/bar")
+        self.assertEqual(patched_file.path, "foo/bar")
+
+    def test_git_mnemonic_file_prefix(self):
+        # mnemonic prefixes used when diff.mnemonicPrefix is set (c/ i/ o/ w/)
+        # and the 1/ 2/ pair used by `git diff --no-index`
+        for prefix in ('c', 'i', 'o', 'w', '1', '2'):
+            patched_file = PatchedFile(source="%s/foo/bar" % prefix,
+                                       target="%s/foo/bar" % prefix)
+            self.assertEqual(patched_file.path, "foo/bar")
+
+    def test_no_file_prefix(self):
+        # a leading slash is not a prefix and must be preserved
+        patched_file = PatchedFile(source="/foo/bar", target="/foo/bar")
+        self.assertEqual(patched_file.path, "/foo/bar")

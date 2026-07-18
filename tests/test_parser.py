@@ -340,6 +340,29 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[2].is_added_file)
         self.assertEqual(res[2].path, 'file3')
 
+    def test_parse_diff_git_mnemonic_prefix(self):
+        # issue #81: git diff with diff.mnemonicPrefix set uses i/ w/ (etc.)
+        # instead of a/ b/; path should still resolve to the plain filename.
+        diff = (
+            'diff --git i/foo/bar.py w/foo/bar.py\n'
+            'index abc1234..def5678 100644\n'
+            '--- i/foo/bar.py\n'
+            '+++ w/foo/bar.py\n'
+            '@@ -1,2 +1,2 @@\n'
+            ' a\n'
+            '-b\n'
+            '+c\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].source_file, 'i/foo/bar.py')
+        self.assertEqual(res[0].target_file, 'w/foo/bar.py')
+        self.assertEqual(res[0].path, 'foo/bar.py')
+        self.assertFalse(res[0].is_rename)
+        self.assertTrue(res[0].is_modified_file)
+        self.assertEqual(str(res), diff)
+
     def test_parse_diff_with_empty_filenames(self):
         # regression test for issue #115: difflib.unified_diff() without
         # fromfile/tofile emits bare "--- " / "+++ " headers (empty
