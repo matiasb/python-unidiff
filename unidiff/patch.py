@@ -575,8 +575,11 @@ class PatchSet(list[PatchedFile]):
                 current_file._add_no_newline_marker_to_last_hunk()
                 continue
 
-            # sometimes hunks can be followed by empty lines
-            if line == '\n' and current_file is not None:
+            # sometimes hunks can be followed by empty lines; only attach the
+            # empty line to the current file when it actually has hunks,
+            # otherwise (e.g. a hunkless rename in git format-patch output) it
+            # is just a separator and belongs to the surrounding patch info
+            if line == '\n' and current_file:
                 current_file._append_trailing_empty_line()
                 continue
 

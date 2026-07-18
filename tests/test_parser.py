@@ -586,6 +586,36 @@ class TestUnidiffParser(unittest.TestCase):
         # the index line is preserved so the diff still round-trips
         self.assertEqual(str(res), diff)
 
+    def test_parse_format_patch_hunkless_rename(self):
+        # regression test for issues #73 / #74: git format-patch output where a
+        # hunkless file (a pure rename) is followed by the "-- " email
+        # signature and a trailing blank line must not raise.
+        lines = [
+            'From 82dd164 Mon Sep 17 00:00:00 2001\n',
+            'From: Someone <someone@example.com>\n',
+            'Subject: [PATCH] Rename JSONHelper to JSONHelper.java\n',
+            '\n',
+            '---\n',
+            ' JSONHelper => JSONHelper.java | 0\n',
+            ' 1 file changed, 0 insertions(+), 0 deletions(-)\n',
+            ' rename JSONHelper => JSONHelper.java (100%)\n',
+            '\n',
+            'diff --git a/JSONHelper b/JSONHelper.java\n',
+            'similarity index 100%\n',
+            'rename from JSONHelper\n',
+            'rename to JSONHelper.java\n',
+            '-- \n',
+            '2.17.1\n',
+            '\n',
+        ]
+
+        res = PatchSet(lines)
+
+        self.assertEqual(len(res), 1)
+        self.assertTrue(res[0].is_rename)
+        self.assertEqual(res[0].path, 'JSONHelper.java')
+        self.assertEqual(len(res[0]), 0)
+
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
