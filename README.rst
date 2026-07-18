@@ -65,7 +65,7 @@ respective info.
 At any point you can get the string representation of the current object, and
 that will return the unified diff data of it.
 
-As a quick example of what can be done, check bin/unidiff file.
+As a quick example of what can be done, check the unidiff/__main__.py file.
 
 Also, once installed, unidiff provides a command-line program that displays
 information from diff data (a file, or stdin). For example:

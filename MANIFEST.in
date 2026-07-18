@@ -1,5 +1,7 @@
-include bin/*
-include tests/samples/*
 include HISTORY
 include LICENSE
 include README.rst
+include ROADMAP.md
+include unidiff/py.typed
+recursive-include tests *.py
+recursive-include tests/samples *
