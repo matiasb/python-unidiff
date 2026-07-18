@@ -460,6 +460,64 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(res[0].target_file, '/dev/null')
         self.assertTrue(res[0].is_removed_file)
 
+    def test_added_symlink_file_mode(self):
+        # issue #125: expose the file mode; a new symlink has mode 120000
+        filename = os.path.join(self.samples_dir, 'samples/git_symlink.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+        self.assertTrue(res[0].is_added_file)
+        self.assertIsNone(res[0].source_mode)
+        self.assertEqual(res[0].target_mode, '120000')
+        self.assertTrue(res[0].is_symlink)
+
+    def test_new_file_mode(self):
+        # issue #125: a regular new file carries `new file mode 100644`
+        filename = os.path.join(self.samples_dir, 'samples/git_quoted_filename.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(res[0].target_mode, '100644')
+        self.assertFalse(res[0].is_symlink)
+
+    def test_mode_change_file(self):
+        # issue #125: `old mode` / `new mode` expose a chmod
+        diff = (
+            'diff --git a/server.py b/bin/server.py\n'
+            'old mode 100644\n'
+            'new mode 100755\n'
+            'similarity index 100%\n'
+            'rename from server.py\n'
+            'rename to bin/server.py\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertEqual(res[0].source_mode, '100644')
+        self.assertEqual(res[0].target_mode, '100755')
+        self.assertFalse(res[0].is_symlink)
+        self.assertTrue(res[0].is_rename)
+
+    def test_index_line_mode(self):
+        # issue #125: an unchanged mode on the index line applies to both sides
+        diff = (
+            'diff --git a/info.sh b/info.sh\n'
+            'index ddbe53c40..6c84b8acf 100755\n'
+            '--- a/info.sh\n'
+            '+++ b/info.sh\n'
+            '@@ -1,2 +1,2 @@\n'
+            ' a\n'
+            '-b\n'
+            '+c\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertEqual(res[0].source_mode, '100755')
+        self.assertEqual(res[0].target_mode, '100755')
+        self.assertFalse(res[0].is_symlink)
+        # the index line is preserved so the diff still round-trips
+        self.assertEqual(str(res), diff)
+
     def test_diff_lines_linenos(self):
         with open(self.sample_file, 'rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')

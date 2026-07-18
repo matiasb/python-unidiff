@@ -43,11 +43,19 @@ RE_DIFF_GIT_HEADER_URI_LIKE = re.compile(
 RE_DIFF_GIT_HEADER_NO_PREFIX = re.compile(
     r'^diff --git (?P<source>[^\t\n]+) (?P<target>[^\t\n]+)')
 
-# check diff git new file marker `deleted file mode 100644`
-RE_DIFF_GIT_DELETED_FILE = re.compile(r'^deleted file mode \d+$')
+# check diff git deleted file marker `deleted file mode 100644`
+RE_DIFF_GIT_DELETED_FILE = re.compile(r'^deleted file mode (?P<mode>\d+)$')
 
 # check diff git new file marker `new file mode 100644`
-RE_DIFF_GIT_NEW_FILE = re.compile(r'^new file mode \d+$')
+RE_DIFF_GIT_NEW_FILE = re.compile(r'^new file mode (?P<mode>\d+)$')
+
+# check diff git file mode change markers `old mode 100644` / `new mode 100755`
+RE_DIFF_GIT_OLD_MODE = re.compile(r'^old mode (?P<mode>\d+)$')
+RE_DIFF_GIT_NEW_MODE = re.compile(r'^new mode (?P<mode>\d+)$')
+
+# check diff git index line with a trailing mode `index abc..def 100644`
+RE_DIFF_GIT_INDEX = re.compile(
+    r'^index [0-9a-f]+\.\.[0-9a-f]+ (?P<mode>\d+)$')
 
 
 # @@ (source offset, length) (target offset, length) @@ (section header)
@@ -74,6 +82,10 @@ RE_BINARY_DIFF = re.compile(
 DEFAULT_ENCODING = 'UTF-8'
 
 DEV_NULL = '/dev/null'
+
+# git file mode for a symbolic link
+SYMLINK_FILE_MODE = '120000'
+
 LINE_TYPE_ADDED = '+'
 LINE_TYPE_REMOVED = '-'
 LINE_TYPE_CONTEXT = ' '
