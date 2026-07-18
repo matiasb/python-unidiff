@@ -305,6 +305,28 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[2].is_added_file)
         self.assertEqual(res[2].path, 'file3')
 
+    def test_parse_diff_with_empty_filenames(self):
+        # regression test for issue #115: difflib.unified_diff() without
+        # fromfile/tofile emits bare "--- " / "+++ " headers (empty
+        # filenames), which should parse instead of raising.
+        import difflib
+        a = 'l1\nl2\nl3\nl4\nl5\nl6\nl7\n'.splitlines(keepends=True)
+        b = 'l1\nl2x\nl3\nl4\nl5\nl6\nl7\n'.splitlines(keepends=True)
+        diff = list(difflib.unified_diff(a, b))
+
+        res = PatchSet(diff)
+
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].source_file, '')
+        self.assertEqual(res[0].target_file, '')
+        self.assertEqual(res[0].path, '')
+        self.assertTrue(res[0].is_modified_file)
+        self.assertFalse(res[0].is_rename)
+        self.assertEqual(res.added, 1)
+        self.assertEqual(res.removed, 1)
+        # the parsed patch should round-trip back to the original input
+        self.assertEqual(str(res), ''.join(diff))
+
     def test_parse_filename_with_spaces(self):
         filename = os.path.join(self.samples_dir, 'samples/git_filenames_with_spaces.diff')
         with open(filename) as f:
