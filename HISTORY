@@ -1,6 +1,29 @@
 History
 -------
 
+1.0.0 - 2026-07-25
+------------------
+
+* Dropped Python 2 support; the minimum supported version is now Python 3.9.
+* Converted to real PEP 484 type annotations and generic containers, and
+  shipped a py.typed marker (#117).
+* Migrated packaging to pyproject.toml; the sdist now includes the tests
+  (#99), and the `unidiff` command is also runnable as `python -m unidiff`.
+* Replaced Travis CI with GitHub Actions (tests + mypy).
+* Exposed git file modes via PatchedFile.source_mode / target_mode and an
+  is_symlink property (#125).
+* Added support for git mnemonic source/target prefixes (i/ w/ c/ o/ and
+  1/ 2/), which also fixes `git diff --cached` paths (#81, #27).
+* Exposed PatchedFile.diff_line_no to locate hunkless (e.g. binary) file
+  entries in the diff (#122).
+* PatchSet and PatchSet.from_string now accept bytes input directly,
+  decoding with the given encoding (default UTF-8) (#43).
+* Parse diffs with empty filenames, e.g. difflib.unified_diff output (#115).
+* Fixed a trailing-newline parse error on hunkless files in git
+  format-patch output (#73, #74).
+* Documented parsing of content with embedded carriage returns / control
+  characters (#120).
+
 0.7.5 - 2023-03-09
 ------------------
 
