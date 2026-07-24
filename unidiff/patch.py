@@ -617,10 +617,11 @@ class PatchSet(list[PatchedFile]):
     @classmethod
     def from_filename(cls, filename: str, encoding: str = DEFAULT_ENCODING,
                       errors: Optional[str] = None,
-                      newline: Optional[str] = None) -> PatchSet:
+                      newline: Optional[str] = None,
+                      metadata_only: bool = False) -> PatchSet:
         """Return a PatchSet instance given a diff filename."""
         with open(filename, 'r', encoding=encoding, errors=errors, newline=newline) as f:
-            instance = cls(f)
+            instance = cls(f, metadata_only=metadata_only)
         return instance
 
     @staticmethod
@@ -633,9 +634,10 @@ class PatchSet(list[PatchedFile]):
 
     @classmethod
     def from_string(cls, data: Union[str, bytes], encoding: Optional[str] = None,
-                    errors: str = 'strict') -> PatchSet:
+                    errors: str = 'strict', metadata_only: bool = False) -> PatchSet:
         """Return a PatchSet instance given a diff string."""
-        return cls(cls._convert_string(data, encoding, errors))
+        return cls(cls._convert_string(data, encoding, errors),
+                   metadata_only=metadata_only)
 
     @property
     def added_files(self) -> list[PatchedFile]:

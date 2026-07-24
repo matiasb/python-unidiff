@@ -48,9 +48,9 @@ Quick start
     --- a/unidiff/utils.py
     +++ b/unidiff/utils.py
     @@ -37,4 +37,3 @@
-    # - deleted line
-    # \ No newline case (ignore)
-    RE_HUNK_BODY_LINE = re.compile(r'^([- \+\\])')
+     # - deleted line
+     # \ No newline case (ignore)
+     RE_HUNK_BODY_LINE = re.compile(r'^([- \+\\])')
     -
 
 
@@ -61,11 +61,6 @@ A :code:`PatchSet` is a list of files updated by the given patch. For each :code
 you can get stats (if it is a new, removed or modified file; the source/target
 lines; etc), besides having access to each hunk (also like a list) and its
 respective info.
-
-For git diffs, the file mode is exposed through the :code:`source_mode` and
-:code:`target_mode` attributes (e.g. :code:`'100644'`, :code:`'100755'`,
-:code:`'120000'`), or :code:`None` when unknown. The :code:`is_symlink`
-property is a shortcut to detect symbolic links (mode :code:`120000`).
 
 At any point you can get the string representation of the current object, and
 that will return the unified diff data of it.
@@ -130,6 +125,91 @@ parsing more efficient:
 
     >>> from unidiff import PatchSet
     >>> patch = PatchSet.from_filename('tests/samples/bzr.diff', encoding='utf-8', metadata_only=True)
+
+
+Inspecting files, hunks and lines
+---------------------------------
+
+.. code-block:: python
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet.from_string(
+    ...     '--- a/story.txt\n'
+    ...     '+++ b/story.txt\n'
+    ...     '@@ -1,4 +1,4 @@\n'
+    ...     ' Once upon a time\n'
+    ...     '-there was a bug\n'
+    ...     '+there was a fix\n'
+    ...     ' the end\n'
+    ...     ' really\n')
+    >>> patched_file = patch[0]
+    >>> patched_file.path
+    'story.txt'
+    >>> patched_file.is_modified_file
+    True
+    >>> patched_file.added, patched_file.removed
+    (1, 1)
+    >>> hunk = patched_file[0]
+    >>> hunk.source_start, hunk.target_start
+    (1, 1)
+    >>> removed = [line for line in hunk if line.is_removed]
+    >>> len(removed)
+    1
+    >>> removed[0].value
+    'there was a bug\n'
+    >>> removed[0].source_line_no
+    2
+    >>> added = [line for line in hunk if line.is_added]
+    >>> added[0].value, added[0].target_line_no
+    ('there was a fix\n', 2)
+
+
+Git file modes, symlinks and line numbers
+------------------------------------------
+
+For git diffs, the file mode is exposed through the :code:`source_mode` and
+:code:`target_mode` attributes (e.g. :code:`'100644'`, :code:`'100755'`,
+:code:`'120000'`), or :code:`None` when unknown. The :code:`is_symlink`
+property is a shortcut to detect symbolic links (mode :code:`120000`):
+
+.. code-block:: python
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet.from_filename('tests/samples/git_symlink.diff')
+    >>> patched_file = patch[0]
+    >>> patched_file.path
+    'bin/check'
+    >>> patched_file.is_added_file
+    True
+    >>> patched_file.target_mode
+    '120000'
+    >>> patched_file.is_symlink
+    True
+
+Each :code:`PatchedFile` also exposes :code:`diff_line_no`, the 1-based line
+number in the diff where its entry starts. This is useful to locate files that
+have no hunks, such as binary changes:
+
+.. code-block:: python
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet.from_filename('tests/samples/debdiff.diff')
+    >>> [(f.path, f.is_binary_file, f.diff_line_no) for f in patch]
+    [('new/added.txt', False, 3), ('/t/p2/a.png', True, 6), ('/t/p2/b.png', True, 7)]
+
+
+Parsing from bytes
+------------------
+
+:code:`PatchSet` and :code:`PatchSet.from_string` also accept :code:`bytes`,
+which are decoded using the given :code:`encoding` (defaulting to UTF-8):
+
+.. code-block:: python
+
+    >>> from unidiff import PatchSet
+    >>> patch = PatchSet(b'--- a/f\n+++ b/f\n@@ -1,2 +1,2 @@\n hola\n-mundo\n+world\n')
+    >>> patch.added, patch.removed
+    (1, 1)
 
 
 Diffs with embedded carriage returns or control characters

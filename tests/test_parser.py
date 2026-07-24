@@ -186,6 +186,21 @@ class TestUnidiffParser(unittest.TestCase):
 
         self.assertEqual(ps1, ps2)
 
+    def test_metadata_only_via_convenience_constructors(self):
+        # from_filename and from_string should forward metadata_only (the
+        # from_filename usage is documented in the README)
+        ps_file = PatchSet.from_filename(
+            self.sample_file, encoding='utf-8', metadata_only=True)
+        with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
+            ps_string = PatchSet.from_string(diff_file.read(), metadata_only=True)
+
+        # counts are still computed under metadata_only
+        self.assertEqual((ps_file.added, ps_file.removed), (21, 17))
+        self.assertEqual((ps_string.added, ps_string.removed), (21, 17))
+        # metadata_only skips storing the line content
+        self.assertEqual(len(ps_file[0][0]), 0)
+        self.assertEqual(len(ps_string[0][0]), 0)
+
     def test_patchset_from_bytes_string(self):
         with codecs.open(self.sample_file, 'rb') as diff_file:
             diff_data = diff_file.read()
