@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
 # Copyright (c) 2014-2017 Matias Bordese
@@ -26,14 +25,14 @@
 
 import unittest
 
-from unidiff.patch import PatchedFile, Hunk
+from unidiff.patch import Hunk, PatchedFile
 
 
 class TestPatchedFile(unittest.TestCase):
     """Tests for PatchedFile."""
 
     def setUp(self):
-        super(TestPatchedFile, self).setUp()
+        super().setUp()
         self.patched_file = PatchedFile()
 
     def test_is_added_file(self):

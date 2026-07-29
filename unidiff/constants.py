@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
 # Copyright (c) 2014-2023 Matias Bordese
@@ -25,7 +24,6 @@
 """Useful constants and regexes used by the package."""
 
 import re
-
 
 # the filename may be empty (e.g. difflib.unified_diff output without
 # fromfile/tofile emits bare "--- " and "+++ " headers)
@@ -77,7 +75,8 @@ RE_NO_NEWLINE_MARKER = re.compile(r'^\\ No newline at end of file')
 RE_BINARY_DIFF = re.compile(
     r'^Binary files? '
     r'(?P<source_filename>[^\t]+?)(?:\t(?P<source_timestamp>[\s0-9:\+-]+))?'
-    r'(?: and (?P<target_filename>[^\t]+?)(?:\t(?P<target_timestamp>[\s0-9:\+-]+))?)? (differ|has changed)')
+    r'(?: and (?P<target_filename>[^\t]+?)'
+    r'(?:\t(?P<target_timestamp>[\s0-9:\+-]+))?)? (differ|has changed)')
 
 # git source/target filename prefixes: the standard "a/" and "b/", plus the
 # mnemonic prefixes used when diff.mnemonicPrefix is set (c/ i/ o/ w/) and the

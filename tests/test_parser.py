@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
 # Copyright (c) 2014-2023 Matias Bordese
@@ -26,6 +25,7 @@
 
 import codecs
 import os.path
+import pathlib
 import unittest
 
 from unidiff import PatchSet
@@ -36,7 +36,7 @@ class TestUnidiffParser(unittest.TestCase):
     """Tests for Unified Diff Parser."""
 
     def setUp(self):
-        super(TestUnidiffParser, self).setUp()
+        super().setUp()
         self.samples_dir = os.path.dirname(os.path.realpath(__file__))
         self.sample_file = os.path.join(
             self.samples_dir, 'samples/sample0.diff')
@@ -46,13 +46,13 @@ class TestUnidiffParser(unittest.TestCase):
     def test_missing_encoding(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
         # read bytes
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             # unicode expected
             self.assertRaises(TypeError, PatchSet, diff_file)
 
     def test_encoding_param(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
         # 3 files updated by diff
@@ -62,7 +62,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_no_newline_at_end_of_file(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
         # 3 files updated by diff
@@ -76,7 +76,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_preserve_dos_line_endings(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample4.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
         # 3 files updated by diff
@@ -86,7 +86,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_preserve_dos_line_endings_empty_line_type(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/sample5.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
         # 2 files updated by diff
@@ -170,7 +170,7 @@ class TestUnidiffParser(unittest.TestCase):
             ps2 = PatchSet(diff_file)
 
         other_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
-        with open(other_file, 'rb') as diff_file:
+        with pathlib.Path(other_file).open('rb') as diff_file:
             ps3 = PatchSet(diff_file, encoding='utf-8')
 
         self.assertEqual(ps1, ps2)
@@ -225,12 +225,12 @@ class TestUnidiffParser(unittest.TestCase):
         # issue #43: accept bytes directly so callers need not pre-decode;
         # with no encoding given, bytes default to UTF-8
         utf8_file = os.path.join(self.samples_dir, 'samples/sample3.diff')
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             diff_bytes = diff_file.read()
 
         ps_default = PatchSet(diff_bytes)
         ps_explicit = PatchSet(diff_bytes, encoding='utf-8')
-        with open(utf8_file, 'rb') as diff_file:
+        with pathlib.Path(utf8_file).open('rb') as diff_file:
             ps_ref = PatchSet(diff_file, encoding='utf-8')
 
         self.assertEqual(ps_default, ps_ref)
@@ -240,19 +240,19 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_parse_malformed_diff(self):
         """Parse malformed file."""
-        with open(self.sample_bad_file) as diff_file:
+        with pathlib.Path(self.sample_bad_file).open() as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
     def test_parse_malformed_diff_longer_than_expected(self):
         """Parse malformed file with non-terminated hunk."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample6.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
     def test_parse_malformed_diff_shorter_than_expected(self):
         """Parse malformed file with non-terminated hunk."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample7.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
     def test_from_filename_with_cr_in_diff_text_files(self):
@@ -261,8 +261,7 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertRaises(UnidiffParseError, PatchSet.from_filename, utf8_file)
 
         ps1 = PatchSet.from_filename(utf8_file, newline='\n')
-        import io
-        with io.open(utf8_file, 'r', newline='\n') as diff_file:
+        with pathlib.Path(utf8_file).open('r', newline='\n') as diff_file:
             ps2 = PatchSet(diff_file)
 
         self.assertEqual(ps1, ps2)
@@ -293,19 +292,19 @@ class TestUnidiffParser(unittest.TestCase):
         # interpreted as a line boundary (the from_filename default would raise)
         path = os.path.join(self.samples_dir, 'samples', '_control_chars.diff')
         try:
-            with open(path, 'wb') as f:
+            with pathlib.Path(path).open('wb') as f:
                 f.write(content.encode('utf-8'))
             self.assertRaises(UnidiffParseError, PatchSet.from_filename, path)
             res2 = PatchSet.from_filename(path, newline='\n')
             self.assertEqual(res, res2)
         finally:
-            if os.path.exists(path):
-                os.remove(path)
+            if pathlib.Path(path).exists():
+                pathlib.Path(path).unlink()
 
     def test_parse_diff_with_new_and_modified_binary_files(self):
         """Parse git diff file with newly added and modified binaries files."""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             res = PatchSet(diff_file)
 
         # three file in the patch
@@ -350,7 +349,7 @@ class TestUnidiffParser(unittest.TestCase):
         # issue #122 / PR #123: a binary change without hunks should still
         # expose the diff line number where its entry appears.
         utf8_file = os.path.join(self.samples_dir, 'samples/debdiff.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             res = PatchSet(diff_file)
 
         self.assertEqual(len(res), 3)
@@ -372,7 +371,7 @@ class TestUnidiffParser(unittest.TestCase):
     def test_parse_round_trip_with_binary_files_in_diff(self):
         """Parse git diff with binary files though round trip"""
         utf8_file = os.path.join(self.samples_dir, 'samples/sample8.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             res1 = PatchSet(diff_file)
 
         res2 = PatchSet(str(res1))
@@ -380,7 +379,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_parse_diff_git_no_prefix(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/git_no_prefix.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             res = PatchSet(diff_file)
 
         self.assertEqual(len(res), 3)
@@ -447,7 +446,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_parse_filename_with_spaces(self):
         filename = os.path.join(self.samples_dir, 'samples/git_filenames_with_spaces.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(len(res), 1)
@@ -459,7 +458,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_parse_filename_prefix_with_spaces(self):
         filename = os.path.join(self.samples_dir, 'samples/git_filenames_with_spaces_prefix.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(len(res), 1)
@@ -471,7 +470,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_parse_quoted_filename(self):
         filename = os.path.join(self.samples_dir, 'samples/git_quoted_filename.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(len(res), 1)
@@ -487,7 +486,7 @@ class TestUnidiffParser(unittest.TestCase):
         # not be detected as a rename when source and target match.
         filename = os.path.join(
             self.samples_dir, 'samples/git_quoted_filename_with_spaces.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(len(res), 1)
@@ -532,10 +531,9 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(hunk[-1].source_line_no, 16)
         self.assertEqual(hunk[-1].target_line_no, 16)
 
-
     def test_deleted_file(self):
         filename = os.path.join(self.samples_dir, 'samples/git_delete.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(len(res), 1)
@@ -546,7 +544,7 @@ class TestUnidiffParser(unittest.TestCase):
     def test_added_symlink_file_mode(self):
         # issue #125: expose the file mode; a new symlink has mode 120000
         filename = os.path.join(self.samples_dir, 'samples/git_symlink.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(len(res), 1)
@@ -558,7 +556,7 @@ class TestUnidiffParser(unittest.TestCase):
     def test_new_file_mode(self):
         # issue #125: a regular new file carries `new file mode 100644`
         filename = os.path.join(self.samples_dir, 'samples/git_quoted_filename.diff')
-        with open(filename) as f:
+        with pathlib.Path(filename).open() as f:
             res = PatchSet(f)
 
         self.assertEqual(res[0].target_mode, '100644')
@@ -632,7 +630,7 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(len(res[0]), 0)
 
     def test_diff_lines_linenos(self):
-        with open(self.sample_file, 'rb') as diff_file:
+        with pathlib.Path(self.sample_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
 
         target_line_nos = []
@@ -687,12 +685,12 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(diff_line_nos, expected_diff_line_nos)
 
     def test_diff_hunk_positions(self):
-        with open(self.sample_file, 'rb') as diff_file:
+        with pathlib.Path(self.sample_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8')
         self.do_test_diff_hunk_positions(res)
 
     def test_diff_metadata_only(self):
-        with open(self.sample_file, 'rb') as diff_file:
+        with pathlib.Path(self.sample_file).open('rb') as diff_file:
             res = PatchSet(diff_file, encoding='utf-8', metadata_only=True)
         self.do_test_diff_hunk_positions(res)
 
@@ -720,7 +718,7 @@ class TestUnidiffParser(unittest.TestCase):
 
     def test_binary_patch(self):
         utf8_file = os.path.join(self.samples_dir, 'samples/binary.diff')
-        with open(utf8_file, 'r') as diff_file:
+        with pathlib.Path(utf8_file).open('r') as diff_file:
             res = PatchSet(diff_file)
             self.assertEqual(len(res), 1)
             patch = res[0]
@@ -728,6 +726,7 @@ class TestUnidiffParser(unittest.TestCase):
             self.assertEqual(patch.target_file, 'b/1x1.png')
             self.assertTrue(patch.is_binary_file)
             self.assertTrue(patch.is_added_file)
+
 
 class TestVCSSamples(unittest.TestCase):
     """Tests for real examples from VCS."""

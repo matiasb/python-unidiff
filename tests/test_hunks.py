@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
 # Copyright (c) 2014-2017 Matias Bordese
@@ -39,7 +38,7 @@ class TestHunk(unittest.TestCase):
     """Tests for Hunk."""
 
     def setUp(self):
-        super(TestHunk, self).setUp()
+        super().setUp()
         self.context_line = Line('Sample line', line_type=LINE_TYPE_CONTEXT)
         self.added_line = Line('Sample line', line_type=LINE_TYPE_ADDED)
         self.removed_line = Line('Sample line', line_type=LINE_TYPE_REMOVED)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
 # Copyright (c) 2014-2017 Matias Bordese
@@ -26,14 +25,28 @@
 
 from unidiff import __version__
 from unidiff.patch import (
-    DEFAULT_ENCODING,
-    LINE_TYPE_ADDED,
-    LINE_TYPE_CONTEXT,
-    LINE_TYPE_REMOVED,
-    Hunk,
-    PatchedFile,
-    PatchSet,
-    UnidiffParseError,
+    DEFAULT_ENCODING as DEFAULT_ENCODING,
+)
+from unidiff.patch import (
+    LINE_TYPE_ADDED as LINE_TYPE_ADDED,
+)
+from unidiff.patch import (
+    LINE_TYPE_CONTEXT as LINE_TYPE_CONTEXT,
+)
+from unidiff.patch import (
+    LINE_TYPE_REMOVED as LINE_TYPE_REMOVED,
+)
+from unidiff.patch import (
+    Hunk as Hunk,
+)
+from unidiff.patch import (
+    PatchedFile as PatchedFile,
+)
+from unidiff.patch import (
+    PatchSet as PatchSet,
+)
+from unidiff.patch import (
+    UnidiffParseError as UnidiffParseError,
 )
 
 VERSION = __version__.__version__

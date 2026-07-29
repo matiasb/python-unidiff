@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
 # Copyright (c) 2014-2023 Matias Bordese
@@ -35,7 +34,6 @@ import argparse
 import sys
 
 from unidiff import DEFAULT_ENCODING, PatchSet
-
 
 DESCRIPTION = """Unified diff metadata.
 
@@ -83,21 +81,24 @@ def main():
     renamed_files = 0
     for f in patch:
         if f.is_binary_file:
-            print('%s:' % f.path, '(binary file)')
+            print(f'{f.path}:', '(binary file)')
         else:
             additions += f.added
             deletions += f.removed
-            print('%s:' % f.path, '+%d additions,' % f.added,
-                  '-%d deletions' % f.removed)
+            print(
+                f'{f.path}: +{f.added} additions, -{f.removed} deletions',
+            )
         renamed_files = renamed_files + 1 if f.is_rename else renamed_files
 
     print()
-    print('%d modified file(s), %d added file(s), %d removed file(s)' % (
-        len(patch.modified_files), len(patch.added_files),
-        len(patch.removed_files)))
+    print(
+        f'{len(patch.modified_files)} modified file(s), '
+        f'{len(patch.added_files)} added file(s), '
+        f'{len(patch.removed_files)} removed file(s)',
+    )
     if renamed_files:
-        print('%d file(s) renamed' % renamed_files)
-    print('Total: %d addition(s), %d deletion(s)' % (additions, deletions))
+        print(f'{renamed_files} file(s) renamed')
+    print(f'Total: {additions} addition(s), {deletions} deletion(s)')
 
 
 if __name__ == '__main__':
