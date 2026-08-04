@@ -530,10 +530,11 @@ class PatchSet(list[PatchedFile]):
             if is_source_filename:
                 source_file = is_source_filename.group('filename')
                 source_timestamp = is_source_filename.group('timestamp')
-                # reset current file, unless we are processing a rename
-                # (in that case, source files should match)
-                if current_file is not None and not (
-                        current_file.source_file == source_file):
+                # a "---" line starts a new file, unless we are still inside a
+                # git header block (patch_info is only set while a "diff --git"
+                # header is being processed, in which case this line just
+                # restates the source of the file already being built)
+                if current_file is not None and patch_info is None:
                     current_file = None
                 elif current_file is not None:
                     current_file.source_timestamp = source_timestamp
