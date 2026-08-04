@@ -1,0 +1,25 @@
+Description: Add fts64 support
+ Adds a new fts64 header and its implementation, and wires the new
+ module into the io Makefile.
+Author: Some One <someone@example.com>
+Forwarded: https://example.com/thread
+Last-Update: 2026-07-31
+
+--- /dev/null
++++ b/include/fts64.h
+@@ -0,0 +1,3 @@
++#ifndef _FTS64_H
++#define _FTS64_H
++#endif
+--- /dev/null
++++ b/io/fts64.c
+@@ -0,0 +1,2 @@
++#include <fts64.h>
++/* implementation */
+--- a/io/Makefile
++++ b/io/Makefile
+@@ -1,3 +1,4 @@
+ routines := \
+   fts \
++  fts64 \
+   open
