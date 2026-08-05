@@ -99,6 +99,21 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(modified_unicode_line.value, '\n')
         self.assertEqual(modified_unicode_line.line_type, ' ')
 
+    def test_metadata_only_with_empty_lines(self):
+        # regression test: the metadata_only fast path must treat a bare
+        # newline (including a DOS "\r\n") as an empty context line, matching
+        # the full parser. Previously it raised on such lines (sample5 has
+        # empty "\r\n" / "\n" context lines).
+        utf8_file = os.path.join(self.samples_dir, 'samples/sample5.diff')
+        with open(utf8_file, 'rb') as diff_file:
+            full = PatchSet(diff_file, encoding='utf-8')
+        with open(utf8_file, 'rb') as diff_file:
+            meta = PatchSet(diff_file, encoding='utf-8', metadata_only=True)
+
+        self.assertEqual(len(meta), len(full))
+        self.assertEqual((meta.added, meta.removed), (full.added, full.removed))
+        self.assertEqual((meta.added, meta.removed), (6, 2))
+
     def test_print_hunks_without_gaps(self):
         with codecs.open(self.sample_file, 'r', encoding='utf-8') as diff_file:
             res = PatchSet(diff_file)
