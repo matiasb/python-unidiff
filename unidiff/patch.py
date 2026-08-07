@@ -263,8 +263,12 @@ class PatchedFile(list[Hunk]):
                 line = line.decode(encoding)
 
             if metadata_only:
-                # quick line type detection, no regex required
-                line_type = line[0] if line else LINE_TYPE_CONTEXT
+                # quick line type detection, no regex required; a bare
+                # newline (including a DOS "\r\n") is an empty context line
+                if not line or line[0] in ('\r', '\n'):
+                    line_type = LINE_TYPE_CONTEXT
+                else:
+                    line_type = line[0]
                 if line_type not in (LINE_TYPE_ADDED,
                                      LINE_TYPE_REMOVED,
                                      LINE_TYPE_CONTEXT,
