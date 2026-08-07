@@ -445,6 +445,51 @@ class TestUnidiffParser(unittest.TestCase):
         # the parsed patch should round-trip back to the original input
         self.assertEqual(str(res), ''.join(diff))
 
+    def test_parse_multiple_added_files(self):
+        # regression test for issue #143: quilt-style patches that add several
+        # files in a row all share the "/dev/null" source, which must not make
+        # consecutive files be merged into one.
+        diff = (
+            '--- /dev/null\n'
+            '+++ b/1.txt\n'
+            '@@ -0,0 +1 @@\n'
+            '+a\n'
+            '--- /dev/null\n'
+            '+++ b/2.txt\n'
+            '@@ -0,0 +1 @@\n'
+            '+b\n'
+        )
+
+        res = PatchSet(diff)
+
+        self.assertEqual(len(res), 2)
+        self.assertEqual([f.path for f in res], ['1.txt', '2.txt'])
+        self.assertTrue(all(f.is_added_file for f in res))
+        self.assertFalse(any(f.is_rename for f in res))
+        self.assertEqual(res.added, 2)
+        self.assertEqual(res[0].target_file, 'b/1.txt')
+        self.assertEqual(res[1].target_file, 'b/2.txt')
+
+    def test_parse_quilt_diff(self):
+        # issue #143: a realistic quilt patch (DEP-3 header preamble, two added
+        # files sharing the /dev/null source, then a modified file).
+        filename = os.path.join(self.samples_dir, 'samples/quilt.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 3)
+        self.assertEqual(
+            [f.path for f in res],
+            ['include/fts64.h', 'io/fts64.c', 'io/Makefile'])
+        self.assertEqual(
+            [f.path for f in res.added_files], ['include/fts64.h', 'io/fts64.c'])
+        self.assertEqual([f.path for f in res.modified_files], ['io/Makefile'])
+        self.assertFalse(any(f.is_rename for f in res))
+        self.assertEqual((res.added, res.removed), (6, 0))
+        # the DEP-3 header preamble is kept as the first file's patch info
+        self.assertTrue(
+            str(res[0].patch_info).startswith('Description: Add fts64 support'))
+
     def test_parse_filename_with_spaces(self):
         filename = os.path.join(self.samples_dir, 'samples/git_filenames_with_spaces.diff')
         with open(filename) as f:
