@@ -615,6 +615,57 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertEqual(res[0].target_mode, '120000')
         self.assertTrue(res[0].is_symlink)
 
+    def test_added_submodule_file_mode(self):
+        # issue #147: a new git submodule (gitlink) has mode 160000
+        filename = os.path.join(self.samples_dir, 'samples/git_submodule.diff')
+        with open(filename) as f:
+            res = PatchSet(f)
+
+        self.assertEqual(len(res), 1)
+        self.assertTrue(res[0].is_added_file)
+        self.assertIsNone(res[0].source_mode)
+        self.assertEqual(res[0].target_mode, '160000')
+        self.assertTrue(res[0].is_submodule)
+        self.assertFalse(res[0].is_symlink)
+
+    def test_deleted_submodule_file_mode(self):
+        # issue #147: a removed submodule only carries the old mode
+        diff = (
+            'diff --git a/submodule b/submodule\n'
+            'deleted file mode 160000\n'
+            'index b399108..0000000\n'
+            '--- a/submodule\n'
+            '+++ /dev/null\n'
+            '@@ -1 +0,0 @@\n'
+            '-Subproject commit b399108e316b17e4e6eed616d112c33796289533\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertTrue(res[0].is_removed_file)
+        self.assertEqual(res[0].source_mode, '160000')
+        self.assertIsNone(res[0].target_mode)
+        self.assertTrue(res[0].is_submodule)
+
+    def test_updated_submodule_file_mode(self):
+        # issue #147: a submodule pointer update carries the mode on the
+        # index line
+        diff = (
+            'diff --git a/submodule b/submodule\n'
+            'index b399108..c0ffee1 160000\n'
+            '--- a/submodule\n'
+            '+++ b/submodule\n'
+            '@@ -1 +1 @@\n'
+            '-Subproject commit b399108e316b17e4e6eed616d112c33796289533\n'
+            '+Subproject commit c0ffee1e316b17e4e6eed616d112c33796289533\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertEqual(res[0].source_mode, '160000')
+        self.assertEqual(res[0].target_mode, '160000')
+        self.assertTrue(res[0].is_submodule)
+        self.assertFalse(res[0].is_symlink)
+        self.assertTrue(res[0].is_modified_file)
+
     def test_new_file_mode(self):
         # issue #125: a regular new file carries `new file mode 100644`
         filename = os.path.join(self.samples_dir, 'samples/git_quoted_filename.diff')

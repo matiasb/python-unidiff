@@ -54,6 +54,7 @@ from unidiff.constants import (
     RE_NO_NEWLINE_MARKER,
     RE_BINARY_DIFF,
     RE_PATCH_FILE_PREFIX,
+    SUBMODULE_FILE_MODE,
     SYMLINK_FILE_MODE,
 )
 from unidiff.errors import UnidiffParseError
@@ -421,12 +422,21 @@ class PatchedFile(list[Hunk]):
         return not (self.is_added_file or self.is_removed_file)
 
     @property
-    def is_symlink(self) -> bool:
-        """Return True if the patched file is a symbolic link."""
+    def _file_mode(self) -> Optional[str]:
+        """Return the relevant git file mode, if known."""
         # prefer the target mode; fall back to the source mode (e.g. a
         # removed symlink only carries the old mode)
-        mode = self.target_mode if self.target_mode is not None else self.source_mode
-        return mode == SYMLINK_FILE_MODE
+        return self.target_mode if self.target_mode is not None else self.source_mode
+
+    @property
+    def is_symlink(self) -> bool:
+        """Return True if the patched file is a symbolic link."""
+        return self._file_mode == SYMLINK_FILE_MODE
+
+    @property
+    def is_submodule(self) -> bool:
+        """Return True if the patched file is a git submodule (gitlink)."""
+        return self._file_mode == SUBMODULE_FILE_MODE
 
 
 class PatchSet(list[PatchedFile]):

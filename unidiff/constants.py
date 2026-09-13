@@ -91,6 +91,9 @@ DEV_NULL = '/dev/null'
 # git file mode for a symbolic link
 SYMLINK_FILE_MODE = '120000'
 
+# git file mode for a submodule (gitlink) entry
+SUBMODULE_FILE_MODE = '160000'
+
 LINE_TYPE_ADDED = '+'
 LINE_TYPE_REMOVED = '-'
 LINE_TYPE_CONTEXT = ' '
