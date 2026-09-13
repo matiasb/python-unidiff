@@ -270,6 +270,16 @@ class TestUnidiffParser(unittest.TestCase):
         with open(utf8_file, 'r') as diff_file:
             self.assertRaises(UnidiffParseError, PatchSet, diff_file)
 
+    def test_parse_target_without_source(self):
+        """Parse a target file header with no preceding source header."""
+        # regression test for issue #148: this used to raise UnboundLocalError
+        for diff in ('+++ b/file\n',
+                     '+++ b/file\n@@ -0,0 +1 @@\n+a\n',
+                     'some preamble\n+++ b/file\n'):
+            with self.assertRaises(UnidiffParseError) as cm:
+                PatchSet(diff)
+            self.assertIn('Target without source', str(cm.exception))
+
     def test_from_filename_with_cr_in_diff_text_files(self):
         """Parse git diff text files that contain CR"""
         utf8_file = os.path.join(self.samples_dir, 'samples/git_cr.diff')

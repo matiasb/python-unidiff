@@ -462,6 +462,9 @@ class PatchSet(list[PatchedFile]):
                metadata_only: bool) -> None:
         current_file = None
         patch_info = None
+        # pending source file header details, consumed by the target header
+        source_file = None
+        source_timestamp = None
 
         diff_lines = enumerate(diff, 1)
         for diff_line_no, line in diff_lines:
@@ -552,6 +555,10 @@ class PatchSet(list[PatchedFile]):
                 if current_file is not None and not (current_file.target_file == target_file):
                     raise UnidiffParseError('Target without source: %s' % line)
                 if current_file is None:
+                    if source_file is None:
+                        # a target header requires a preceding source header
+                        raise UnidiffParseError(
+                            'Target without source: %s' % line)
                     # add current file to PatchSet
                     current_file = PatchedFile(
                         patch_info, source_file, target_file,
@@ -559,6 +566,9 @@ class PatchSet(list[PatchedFile]):
                         diff_line_no=diff_line_no)
                     self.append(current_file)
                     patch_info = None
+                    # the source header has been consumed by this file
+                    source_file = None
+                    source_timestamp = None
                 else:
                     current_file.target_timestamp = target_timestamp
                 continue
