@@ -361,6 +361,24 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertFalse(res[4].is_binary_file)
         self.assertEqual(res[4].diff_line_no, 15)
 
+    def test_parse_binary_diff_without_target_filename(self):
+        # hg emits "Binary file X has changed", with no target filename;
+        # both sides should then refer to the same file
+        diff = (
+            'diff -r a1b2c3d4 image.png\n'
+            'Binary file image.png has changed\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertEqual(len(res), 1)
+        self.assertTrue(res[0].is_binary_file)
+        self.assertEqual(res[0].source_file, 'image.png')
+        self.assertEqual(res[0].target_file, 'image.png')
+        self.assertFalse(res[0].is_rename)
+        self.assertEqual(res[0].path, 'image.png')
+        # the diff still round-trips
+        self.assertEqual(str(res), diff)
+
     def test_parse_debdiff_binary_file_line_numbers(self):
         # issue #122 / PR #123: a binary change without hunks should still
         # expose the diff line number where its entry appears.

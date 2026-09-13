@@ -596,7 +596,10 @@ class PatchSet(list[PatchedFile]):
             is_binary_diff = RE_BINARY_DIFF.match(line)
             if is_binary_diff:
                 source_file = is_binary_diff.group('source_filename')
-                target_file = is_binary_diff.group('target_filename')
+                # formats like hg's "Binary file X has changed" carry no
+                # target filename; both sides refer to the same file
+                target_file = (is_binary_diff.group('target_filename')
+                               or source_file)
                 patch_info.append(line)
                 if current_file is not None:
                     current_file.is_binary_file = True
