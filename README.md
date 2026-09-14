@@ -157,7 +157,7 @@ True
 ('there was a fix\n', 2)
 ```
 
-## Git file modes, symlinks and line numbers
+## Git file modes, symlinks, submodules and line numbers
 
 For git diffs, the file mode is exposed through the `source_mode` and
 `target_mode` attributes (e.g. `'100644'`, `'100755'`, `'120000'`), or `None`
@@ -175,6 +175,21 @@ True
 >>> patched_file.target_mode
 '120000'
 >>> patched_file.is_symlink
+True
+```
+
+Likewise, `is_submodule` detects git submodule (gitlink) entries, mode
+`160000`:
+
+```python
+>>> from unidiff import PatchSet
+>>> patch = PatchSet.from_filename('tests/samples/git_submodule.diff')
+>>> patched_file = patch[0]
+>>> patched_file.path
+'tests/diffs/submodule'
+>>> patched_file.target_mode
+'160000'
+>>> patched_file.is_submodule
 True
 ```
 

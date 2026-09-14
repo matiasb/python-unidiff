@@ -1,0 +1,7 @@
+diff --git a/tests/diffs/submodule b/tests/diffs/submodule
+new file mode 160000
+index 0000000..b399108
+--- /dev/null
++++ b/tests/diffs/submodule
+@@ -0,0 +1 @@
++Subproject commit b399108e316b17e4e6eed616d112c33796289533
