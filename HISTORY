@@ -1,6 +1,19 @@
 History
 -------
 
+1.0.1 - 2026-09-14
+------------------
+
+* Exposed git submodule (gitlink) entries through the file mode and the new
+  PatchedFile.is_submodule property (#147).
+* Fixed parsing of patches that add multiple files in a row sharing the
+  /dev/null source, such as quilt-generated patches (#143).
+* Fixed metadata_only parsing of empty (including DOS "\r\n") context lines.
+* Fixed an UnboundLocalError on malformed patches with a target file header
+  and no preceding source header; UnidiffParseError is now raised (#148).
+* Fixed a TypeError on binary diffs without a target filename, such as
+  Mercurial's "Binary file X has changed".
+
 1.0.0 - 2026-07-25
 ------------------
 
