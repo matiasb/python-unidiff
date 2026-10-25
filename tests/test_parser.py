@@ -443,6 +443,80 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertTrue(res[2].is_added_file)
         self.assertEqual(res[2].path, 'file3')
 
+    def test_parse_diff_git_no_prefix_rename(self):
+        # With --no-prefix, the first two characters belong to the filename.
+        for source, target in (
+                ('a.py', 'b.py'), ('v1.txt', 'v2.txt'), ('x', 'y'),
+                ('ab', 'cd'), ('"a.py"', '"b.py"'),
+                ('ab/foo', 'cd/foo'), ('"x"', '"y"')):
+            diff = (
+                'diff --git %s %s\n'
+                'similarity index 100%%\n'
+                'rename from %s\n'
+                'rename to %s\n' % (source, target, source, target))
+            for metadata_only in (False, True):
+                with self.subTest(source=source, target=target,
+                                  metadata_only=metadata_only):
+                    res = PatchSet(diff, metadata_only=metadata_only)
+                    self.assertEqual(len(res), 1)
+                    self.assertEqual(res[0].source_file, source)
+                    self.assertEqual(res[0].target_file, target)
+                    self.assertTrue(res[0].is_rename)
+                    self.assertEqual(res[0].path, target)
+                    self.assertEqual(str(res), diff)
+
+    def test_parse_diff_git_rename_prefixes(self):
+        cases = (
+            ('a.py', 'a.py', False, 'a.py'),
+            ('old.py', 'new.py', True, 'new.py'),
+            ('a/old.py', 'b/new.py', True, 'new.py'),
+            ('a/same.py', 'b/same.py', False, 'same.py'),
+            ('i/old.py', 'w/new.py', True, 'new.py'),
+            ('i/same.py', 'w/same.py', False, 'same.py'),
+            ('c/old.py', 'i/new.py', True, 'new.py'),
+            ('o/old.py', 'w/new.py', True, 'new.py'),
+            ('1/old.py', '2/new.py', True, 'new.py'),
+            ('1/same.py', '2/same.py', False, 'same.py'),
+            ('a/name.py', 'name.py', True, 'name.py'),
+            ('name.py', 'b/name.py', True, 'name.py'),
+            ('"a/name.py"', '"name.py"', True, '"name.py"'),
+            ('"name.py"', '"b/name.py"', True, '"name.py"'),
+            ('"a/old name.py"', '"b/new name.py"', True, '"new name.py"'),
+            ('"a/same name.py"', '"b/same name.py"', False, '"same name.py"'),
+            ('src://old name.py', 'dst://new name.py', True,
+             'dst://new name.py'),
+            ('src://same name.py', 'src://same name.py', False,
+             'src://same name.py'),
+            ('x/f.py', 'b/f.py', False, 'x/f.py'),
+            ('x/f.py', 'y/f.py', False, 'x/f.py'),
+            ('x/old.py', 'y/new.py', True, 'y/new.py'),
+            ('"x/f.py"', '"b/f.py"', False, '"x/f.py"'),
+            ('"x/\\303\\251.py"', 'b/e.py', True, 'e.py'),
+            ('x/e.py', '"b/\\303\\251.py"', True, '"\\303\\251.py"'),
+            ('"v1.txt"', '"v2.txt"', True, '"v2.txt"'),
+        )
+        for source, target, is_rename, path in cases:
+            diff = 'diff --git %s %s\n' % (source, target)
+            for metadata_only in (False, True):
+                with self.subTest(source=source, target=target,
+                                  metadata_only=metadata_only):
+                    res = PatchSet(diff, metadata_only=metadata_only)
+                    self.assertEqual(len(res), 1)
+                    self.assertEqual(res[0].source_file, source)
+                    self.assertEqual(res[0].target_file, target)
+                    self.assertEqual(res[0].is_rename, is_rename)
+                    self.assertEqual(res[0].path, path)
+                    self.assertEqual(str(res), diff)
+
+    def test_parse_diff_git_added_removed_not_renamed(self):
+        for source, target, path in (
+                ('/dev/null', 'b/a.py', 'a.py'),
+                ('a/a.py', '/dev/null', 'a.py')):
+            diff = '--- %s\n+++ %s\n' % (source, target)
+            res = PatchSet(diff)
+            self.assertFalse(res[0].is_rename)
+            self.assertEqual(res[0].path, path)
+
     def test_parse_diff_git_mnemonic_prefix(self):
         # issue #81: git diff with diff.mnemonicPrefix set uses i/ w/ (etc.)
         # instead of a/ b/; path should still resolve to the plain filename.

@@ -396,9 +396,18 @@ class PatchedFile(list[Hunk]):
 
     @property
     def is_rename(self) -> bool:
-        return (self.source_file != DEV_NULL
-            and self.target_file != DEV_NULL
-            and self.source_file[2:] != self.target_file[2:])
+        if self.source_file == DEV_NULL or self.target_file == DEV_NULL:
+            return False
+        source = self.source_file
+        target = self.target_file
+        if source.startswith('"') and source.endswith('"'):
+            source = source[1:-1]
+        if target.startswith('"') and target.endswith('"'):
+            target = target[1:-1]
+        # Custom git prefixes need not belong to RE_PATCH_FILE_PREFIX.
+        if source[1:2] == '/' and target[1:2] == '/':
+            return source[2:] != target[2:]
+        return source != target
 
     @property
     def is_added_file(self) -> bool:
