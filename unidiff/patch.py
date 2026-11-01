@@ -46,6 +46,8 @@ from unidiff.constants import (
     RE_DIFF_GIT_NEW_FILE,
     RE_DIFF_GIT_NEW_MODE,
     RE_DIFF_GIT_OLD_MODE,
+    RE_DIFF_GIT_RENAME_FROM,
+    RE_DIFF_GIT_RENAME_TO,
     RE_HUNK_BODY_LINE,
     RE_HUNK_EMPTY_BODY_LINE,
     RE_HUNK_HEADER,
@@ -225,6 +227,9 @@ class PatchedFile(list[Hunk]):
         # 1-based line number in the diff where this file entry starts; useful
         # to locate files that have no hunks (e.g. binary changes)
         self.diff_line_no = diff_line_no
+        # paths from git `rename from` / `rename to` lines; None if missing
+        self.rename_from: Optional[str] = None
+        self.rename_to: Optional[str] = None
 
     def __repr__(self) -> str:
         return "<PatchedFile: %s>" % self.path
@@ -366,6 +371,10 @@ class PatchedFile(list[Hunk]):
     @property
     def path(self) -> str:
         """Return the file path abstracted from VCS."""
+        if self.rename_to is not None:
+            # git states the new path explicitly, without any prefix
+            return self.rename_to
+
         filepath = self.source_file
         if filepath in (None, DEV_NULL) or (
                 self.is_rename and self.target_file not in (None, DEV_NULL)):
@@ -396,6 +405,8 @@ class PatchedFile(list[Hunk]):
 
     @property
     def is_rename(self) -> bool:
+        if self.rename_from is not None and self.rename_to is not None:
+            return True
         return (self.source_file != DEV_NULL
             and self.target_file != DEV_NULL
             and self.source_file[2:] != self.target_file[2:])
@@ -528,6 +539,18 @@ class PatchSet(list[PatchedFile]):
                 is_diff_git_new_mode = RE_DIFF_GIT_NEW_MODE.match(line)
                 if is_diff_git_new_mode:
                     current_file.target_mode = is_diff_git_new_mode.group('mode')
+                    patch_info.append(line)
+                    continue
+
+                is_diff_git_rename_from = RE_DIFF_GIT_RENAME_FROM.match(line)
+                if is_diff_git_rename_from:
+                    current_file.rename_from = is_diff_git_rename_from.group('filename')
+                    patch_info.append(line)
+                    continue
+
+                is_diff_git_rename_to = RE_DIFF_GIT_RENAME_TO.match(line)
+                if is_diff_git_rename_to:
+                    current_file.rename_to = is_diff_git_rename_to.group('filename')
                     patch_info.append(line)
                     continue
 

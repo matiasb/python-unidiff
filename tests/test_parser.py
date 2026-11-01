@@ -720,6 +720,76 @@ class TestUnidiffParser(unittest.TestCase):
         self.assertFalse(res[0].is_symlink)
         self.assertTrue(res[0].is_rename)
 
+    def test_rename_no_prefix(self):
+        # `git diff --no-prefix`: the header names carry no a/ b/ prefix,
+        # so the `rename from` / `rename to` lines are the reliable source
+        diff = (
+            'diff --git a.py b.py\n'
+            'similarity index 100%\n'
+            'rename from a.py\n'
+            'rename to b.py\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertTrue(res[0].is_rename)
+        self.assertEqual(res[0].path, 'b.py')
+        self.assertEqual(res[0].source_file, 'a.py')
+        self.assertEqual(res[0].target_file, 'b.py')
+        self.assertEqual(res[0].rename_from, 'a.py')
+        self.assertEqual(res[0].rename_to, 'b.py')
+        self.assertEqual(str(res), diff)
+
+    def test_rename_no_prefix_single_char_dirs(self):
+        # directory names that look like git prefixes are not stripped
+        diff = (
+            'diff --git x/util.py y/util.py\n'
+            'similarity index 100%\n'
+            'rename from x/util.py\n'
+            'rename to y/util.py\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertTrue(res[0].is_rename)
+        self.assertEqual(res[0].path, 'y/util.py')
+
+        diff = (
+            'diff --git a/x.py b/x.py\n'
+            'similarity index 100%\n'
+            'rename from a/x.py\n'
+            'rename to b/x.py\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertTrue(res[0].is_rename)
+        self.assertEqual(res[0].path, 'b/x.py')
+
+    def test_rename_quoted_filename(self):
+        diff = (
+            'diff --git "a/caf\\303\\251.py" "b/th\\303\\251.py"\n'
+            'similarity index 100%\n'
+            'rename from "caf\\303\\251.py"\n'
+            'rename to "th\\303\\251.py"\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertTrue(res[0].is_rename)
+        self.assertEqual(res[0].path, '"th\\303\\251.py"')
+
+    def test_non_git_tree_diff_not_rename(self):
+        # `diff -ruN v1 v2` names both trees; this is not a rename
+        diff = (
+            'diff -ruN v1/src/foo.c v2/src/foo.c\n'
+            '--- v1/src/foo.c\t2026-10-30 10:00:00.000000000 +0000\n'
+            '+++ v2/src/foo.c\t2026-10-30 10:01:00.000000000 +0000\n'
+            '@@ -1 +1 @@\n'
+            '-a\n'
+            '+b\n'
+        )
+        res = PatchSet(diff)
+
+        self.assertFalse(res[0].is_rename)
+        self.assertEqual(res[0].path, 'v1/src/foo.c')
+
     def test_index_line_mode(self):
         # issue #125: an unchanged mode on the index line applies to both sides
         diff = (

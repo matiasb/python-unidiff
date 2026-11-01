@@ -28,5 +28,5 @@ index a071991..4dbab21 100644
 
 diff --git a/sub/onefile b/sub/otherfile
 similarity index 100%
-rename from onefile
-rename to otherfile
+rename from sub/onefile
+rename to sub/otherfile

@@ -53,6 +53,11 @@ RE_DIFF_GIT_NEW_FILE = re.compile(r'^new file mode (?P<mode>\d+)$')
 RE_DIFF_GIT_OLD_MODE = re.compile(r'^old mode (?P<mode>\d+)$')
 RE_DIFF_GIT_NEW_MODE = re.compile(r'^new mode (?P<mode>\d+)$')
 
+# check diff git rename markers `rename from old.py` / `rename to new.py`
+# (the paths carry no a/ b/ prefix, whatever prefix the header uses)
+RE_DIFF_GIT_RENAME_FROM = re.compile(r'^rename from (?P<filename>[^\r\n]+)$')
+RE_DIFF_GIT_RENAME_TO = re.compile(r'^rename to (?P<filename>[^\r\n]+)$')
+
 # check diff git index line with a trailing mode `index abc..def 100644`
 RE_DIFF_GIT_INDEX = re.compile(
     r'^index [0-9a-f]+\.\.[0-9a-f]+ (?P<mode>\d+)$')
