@@ -129,6 +129,8 @@ class Hunk(list[Line]):
                  tgt_len: Optional[Union[str, int]] = 0,
                  section_header: str = '') -> None:
         super(Hunk, self).__init__()
+        self.source_length_in_header = src_len is not None
+        self.target_length_in_header = tgt_len is not None
         if src_len is None:
             src_len = 1
         if tgt_len is None:
@@ -149,11 +151,19 @@ class Hunk(list[Line]):
                                                   self.section_header)
         return value
 
+    def _format_range(self, start: int, length: int, in_header: bool) -> str:
+        # diff and git leave the length out of the header when it is one.
+        if length == 1 and not in_header:
+            return "%d" % start
+        return "%d,%d" % (start, length)
+
     def __str__(self) -> str:
         # section header is optional and thus we output it only if it's present
-        head = "@@ -%d,%d +%d,%d @@%s\n" % (
-            self.source_start, self.source_length,
-            self.target_start, self.target_length,
+        head = "@@ -%s +%s @@%s\n" % (
+            self._format_range(self.source_start, self.source_length,
+                               self.source_length_in_header),
+            self._format_range(self.target_start, self.target_length,
+                               self.target_length_in_header),
             ' ' + self.section_header if self.section_header else '')
         content = ''.join(str(line) for line in self)
         return head + content

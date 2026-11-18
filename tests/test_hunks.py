@@ -32,6 +32,7 @@ from unidiff.patch import (
     LINE_TYPE_REMOVED,
     Hunk,
     Line,
+    PatchSet,
 )
 
 
@@ -88,3 +89,23 @@ class TestHunk(unittest.TestCase):
         self.assertIn(str(self.removed_line), hunk.source)
         source_lines = list(hunk.source_lines())
         self.assertEqual(source_lines, [self.removed_line])
+
+    def test_hunk_header_keeps_omitted_length(self):
+        diff = (
+            '--- a/f\n'
+            '+++ b/f\n'
+            '@@ -1 +1 @@\n'
+            '-a\n'
+            '+b\n'
+        )
+        self.assertEqual(str(PatchSet(diff)), diff)
+
+    def test_hunk_header_keeps_written_length(self):
+        diff = (
+            '--- a/f\n'
+            '+++ b/f\n'
+            '@@ -1,1 +1,1 @@\n'
+            '-a\n'
+            '+b\n'
+        )
+        self.assertEqual(str(PatchSet(diff)), diff)
