@@ -483,6 +483,8 @@ class PatchSet(list[PatchedFile]):
                metadata_only: bool) -> None:
         current_file = None
         patch_info = None
+        binary_patch_info = None
+        in_binary_data = False
         # pending source file header details, consumed by the target header
         source_file = None
         source_timestamp = None
@@ -497,6 +499,7 @@ class PatchSet(list[PatchedFile]):
                 RE_DIFF_GIT_HEADER_URI_LIKE.match(line) or \
                 RE_DIFF_GIT_HEADER_NO_PREFIX.match(line)
             if is_diff_git_header:
+                binary_patch_info = None
                 patch_info = PatchInfo()
                 source_file = is_diff_git_header.group('source')
                 target_file = is_diff_git_header.group('target')
@@ -506,6 +509,16 @@ class PatchSet(list[PatchedFile]):
                 self.append(current_file)
                 patch_info.append(line)
                 continue
+
+            if binary_patch_info is not None:
+                # Keep literal/delta blocks with their file, including the
+                # separating blank lines, without interpreting the payload.
+                if in_binary_data or line.startswith(('literal ', 'delta ')):
+                    if not metadata_only:
+                        binary_patch_info.append(line)
+                    in_binary_data = line != '\n'
+                    continue
+                binary_patch_info = None
 
             # check for a git new file
             is_diff_git_new_file = RE_DIFF_GIT_NEW_FILE.match(line)
@@ -659,6 +672,10 @@ class PatchSet(list[PatchedFile]):
                 if current_file is None:
                     raise UnidiffParseError('Unexpected binary patch marker: %s' % line)
                 current_file.is_binary_file = True
+                binary_patch_info = patch_info
+                in_binary_data = False
+                if not metadata_only:
+                    binary_patch_info.append(line)
                 patch_info = None
                 current_file = None
                 continue
